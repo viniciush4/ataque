@@ -1,37 +1,6 @@
-## Welcome to GitHub Pages
+## Ataque de Dicionário em Mensagem Criptografada
 
-You can use the [editor on GitHub](https://github.com/viniciush4/ataque/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
+O trabalho consiste em implementar a arquitetura mestre/escravo para realizar um ataque de dicionário em uma mensagem criptografada. O ataque de dicionário consiste em usar um dicionário como fonte de chaves candidatas. No nosso caso, assumiremos que conhecemos um trecho da mensagem (por exemplo sabemos que a string “ufes” aparece na mensagem, ou a string “PDF”). O ataque será realizado decriptografando a mensagem com cada palavra do dicionário (chave candidata) e procurando o trecho conhecido na mensagem decriptografada. Caso o trecho conhecido seja localizado na mensagem decriptografada com a chave candidata, a chave é considerada uma possível chave para a mensagem, e é usada para obter um possível texto para a mensagem.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/viniciush4/ataque/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+O algoritmo de criptografia Blowfish será utilizado (http://www.schneier.com/blowfish-
+download.html).
