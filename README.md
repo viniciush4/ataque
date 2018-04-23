@@ -3,4 +3,6 @@ O trabalho consiste em implementar a arquitetura mestre/escravo para realizar um
 
 O algoritmo de criptografia Blowfish será utilizado (http://www.schneier.com/blowfish- download.html).
 
+![alt text](https://github.com/viniciush4/ataque/blob/master/imagens/act.png)
+
 ![alt text](https://github.com/viniciush4/ataque/blob/master/imagens/seq.png)
