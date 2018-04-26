@@ -6,7 +6,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class SlaveImpl implements Slave {
 	
-	
+	// Método principal
 	public static void main(String[] args)
 	{
 		try 
@@ -16,18 +16,20 @@ public class SlaveImpl implements Slave {
 				throw new Exception("Informe um nome para o escravo");
 			}
 			
-			// Instancia o registry
+			// Pega referência do registry
 			Registry registry = LocateRegistry.getRegistry();
 			
 			// Faz lookup no mestre
 			Master mestre = (Master) registry.lookup("mestre");
 			
 			// Cria referencia de si para exportação
-			Slave obj = new SlaveImpl();
-			SlaveImpl objref = (SlaveImpl) UnicastRemoteObject.exportObject(obj, 0);
+			SlaveImpl obj = new SlaveImpl();
+			Slave objref = (Slave) UnicastRemoteObject.exportObject(obj, 0);
 			
 			// Registra-se no mestre
 			mestre.addSlave(objref, args[0], java.util.UUID.randomUUID());
+			
+			mestre.attack(null, null);
 			
 		}
 		catch (Exception e) 
