@@ -4,9 +4,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-public class SlaveImpl implements Slave {
+public class SlaveImpl implements Slave 
+{
 	
-	// Método principal
 	public static void main(String[] args)
 	{
 		try 
@@ -29,7 +29,6 @@ public class SlaveImpl implements Slave {
 			// Registra-se no mestre
 			mestre.addSlave(objref, args[0], java.util.UUID.randomUUID());
 			
-			mestre.attack(null, null);
 			
 		}
 		catch (Exception e) 

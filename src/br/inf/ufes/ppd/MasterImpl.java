@@ -5,9 +5,13 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
-public class MasterImpl implements Master {
+public class MasterImpl implements Master 
+{
+	Map<java.util.UUID, SlaveStatus> escravos = new HashMap<java.util.UUID, SlaveStatus>();
 	
 	public static void main(String args[]) 
 	{	
@@ -27,15 +31,15 @@ public class MasterImpl implements Master {
 					
 			
 		} catch (Exception e) {
-			System.err.println("Server exception: " + e.toString());
 			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
-		// TODO Auto-generated method stub
+		this.escravos.put(slavekey, new SlaveStatus(slaveName));
 		
+		System.err.println(this.escravos.get(slavekey).getNome());
 	}
 
 	@Override
