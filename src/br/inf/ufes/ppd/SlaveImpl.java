@@ -12,15 +12,18 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 public class SlaveImpl implements Slave 
 {
-	
 	public static void main(String[] args)
 	{
 		try 
 		{
 			// Se não foi fornecido o primeiro argumento
-			if(args[0].isEmpty()) {
+			if(args[0].isEmpty()) 
+			{
 				throw new Exception("Informe um nome para o escravo");
 			}
 			
@@ -58,33 +61,51 @@ public class SlaveImpl implements Slave
 	 * @throws java.rmi.RemoteException
 	 */
 	public void startSubAttack(
-			byte[] ciphertext,
-			byte[] knowntext,
-			long initialwordindex,
-			long finalwordindex,
-			int attackNumber,
-			SlaveManager callbackinterface)
-	throws java.rmi.RemoteException{
-		
-		// Lê o arquivo do dicionário
-		File arquivo = new File("../dictionary.txt");
-				
-		try {
+		byte[] ciphertext,
+		byte[] knowntext,
+		long initialwordindex,
+		long finalwordindex,
+		int attackNumber,
+		SlaveManager callbackinterface)
+	throws java.rmi.RemoteException 
+	{		
+		try 
+		{
+			// Lê o arquivo do dicionário
+			File arquivo = new File("../dictionary.txt");
 			FileReader arq = new FileReader(arquivo);
 			@SuppressWarnings("resource")
 			BufferedReader lerArq = new BufferedReader(arq);
 			
-			System.err.println(lerArq.readLine());
-			System.err.println(lerArq.readLine());
-			System.err.println(lerArq.readLine());
-			System.err.println(lerArq.readLine());
-			System.err.println(lerArq.readLine());
+			// Avança até initialwordindex
+			for(long i=0;i<initialwordindex;i++) {
+				lerArq.readLine();
+			}
+			
+			// Percorre o intervalo solicitado no dicionario
+			for(long i=initialwordindex; i<=finalwordindex;i++) {
+				
+				// Lê a palavra candidata
+				String palavra = lerArq.readLine();
+				
+				// Usa a palavra para descriptografar o ciphertext
+				byte[] key = palavra.getBytes();
+				SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
+				Cipher cipher = Cipher.getInstance("Blowfish");
+				cipher.init(Cipher.DECRYPT_MODE, keySpec);
+				byte[] decrypted = cipher.doFinal(ciphertext);
+				
+				// Verifica se o knowntext existe no texto descriptografado
+				if(decrypted.toString().contains(palavra)) {
+					
+					// Avisa ao mestre 
+					System.err.println(palavra);
+				}
+			}
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
-		
+		}	
 	}
 }

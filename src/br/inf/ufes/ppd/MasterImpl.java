@@ -28,7 +28,6 @@ public class MasterImpl implements Master
 			
 			// Informa o status do mestre
 			System.err.println("Master ready");
-					
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -41,7 +40,7 @@ public class MasterImpl implements Master
 		
 		System.err.println(this.slaves.get(slavekey).getSlaveName());
 		
-		this.slaves.get(slavekey).getSlave().startSubAttack(null, null, 0, 0, 0, null);
+		
 	}
 
 	@Override
@@ -65,6 +64,11 @@ public class MasterImpl implements Master
 
 	@Override
 	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException {
+		
+		// Dividir o dicionario para os escravos
+		
+		// Chamar startSubAttack para cada escravo como abaixo:
+		// this.slaves.get(slavekey).getSlave().startSubAttack(null, null, 3, 6, 0, null);
 		
 		Guess guess = new Guess();
 		guess.setKey("Chave teste");
