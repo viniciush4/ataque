@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class MasterImpl implements Master 
 {
-	Map<java.util.UUID, SlaveStatus> escravos = new HashMap<java.util.UUID, SlaveStatus>();
+	Map<java.util.UUID, SlaveStatus> slaves = new HashMap<java.util.UUID, SlaveStatus>();
 	
 	public static void main(String args[]) 
 	{	
@@ -37,9 +37,9 @@ public class MasterImpl implements Master
 
 	@Override
 	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
-		this.escravos.put(slavekey, new SlaveStatus(slaveName));
+		this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
 		
-		System.err.println(this.escravos.get(slavekey).getNome());
+		System.err.println(this.slaves.get(slavekey).getSlaveName());
 	}
 
 	@Override
