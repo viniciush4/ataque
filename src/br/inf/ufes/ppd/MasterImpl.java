@@ -40,6 +40,8 @@ public class MasterImpl implements Master
 		this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
 		
 		System.err.println(this.slaves.get(slavekey).getSlaveName());
+		
+		this.slaves.get(slavekey).getSlave().startSubAttack(null, null, 0, 0, 0, null);
 	}
 
 	@Override

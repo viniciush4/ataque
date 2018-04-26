@@ -1,5 +1,13 @@
 package br.inf.ufes.ppd;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -29,7 +37,6 @@ public class SlaveImpl implements Slave
 			// Registra-se no mestre
 			mestre.addSlave(objref, args[0], java.util.UUID.randomUUID());
 			
-			
 		}
 		catch (Exception e) 
 		{
@@ -58,6 +65,25 @@ public class SlaveImpl implements Slave
 			int attackNumber,
 			SlaveManager callbackinterface)
 	throws java.rmi.RemoteException{
+		
+		// Lê o arquivo do dicionário
+		File arquivo = new File("../dictionary.txt");
+				
+		try {
+			FileReader arq = new FileReader(arquivo);
+			@SuppressWarnings("resource")
+			BufferedReader lerArq = new BufferedReader(arq);
+			
+			System.err.println(lerArq.readLine());
+			System.err.println(lerArq.readLine());
+			System.err.println(lerArq.readLine());
+			System.err.println(lerArq.readLine());
+			System.err.println(lerArq.readLine());
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		
 	}
