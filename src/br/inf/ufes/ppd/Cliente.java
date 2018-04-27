@@ -63,16 +63,16 @@ public class Cliente
 		//Captura os parâmetros
 		String nomeArquivoCriptografado = (args.length < 1) ? null : args[0];
 		byte[] palavraConhecida = (args.length < 2) ? null : args[1].getBytes();
-		int tamanhoVetorGerado = (args.length < 3) ? (1000 + numeroAleatorio.nextInt(99000)) : Integer.parseInt(args[2]);
+		int tamanhoVetorGerado = (args.length < 3) ? (1000 + numeroAleatorio.nextInt(99001)) : Integer.parseInt(args[2]);
 		
 		try
 		{
 			//Armazena o vetor de bytes
 			byte[] mensagem = lerArquivoCriptografado(nomeArquivoCriptografado,tamanhoVetorGerado);
 			
-			//Invoca o mestre passando o vetor de bytes
+			//Invoca o mestre passando o vetor de bytes e a palavra conhecida
 			Registry registry = LocateRegistry.getRegistry();
-			//Attacker ataque = (Attacker) registry.lookup("mestre");
+		
 			Master mestre = (Master) registry.lookup("mestre");
 			
 			Guess[] guess = mestre.attack(mensagem, palavraConhecida);
