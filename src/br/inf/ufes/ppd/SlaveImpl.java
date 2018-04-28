@@ -17,6 +17,8 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class SlaveImpl implements Slave 
 {
+	static java.util.UUID slaveKey = java.util.UUID.randomUUID();
+	
 	public static void main(String[] args)
 	{
 		try 
@@ -38,7 +40,7 @@ public class SlaveImpl implements Slave
 			Slave objref = (Slave) UnicastRemoteObject.exportObject(obj, 0);
 			
 			// Registra-se no mestre
-			mestre.addSlave(objref, args[0], java.util.UUID.randomUUID());
+			mestre.addSlave(objref, args[0], slaveKey);
 			
 		}
 		catch (Exception e) 
@@ -111,8 +113,10 @@ public class SlaveImpl implements Slave
 				if(mensagem_descriptografada.contains(texto_conhecido)) 
 				{
 					// Avisa ao mestre 
-					System.err.println(palavra);
-					//callbackinterface.foundGuess(slaveKey, attackNumber, currentindex, currentguess);
+					Guess currentguess = new Guess();
+					currentguess.setKey(palavra);
+					currentguess.setMessage(decrypted);
+					callbackinterface.foundGuess(slaveKey, attackNumber, i, currentguess);
 				}
 			}
 			

@@ -51,7 +51,8 @@ public class MasterImpl implements Master
 	@Override
 	public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess)
 			throws RemoteException {
-		// TODO Auto-generated method stub
+		
+		System.err.println("Palavra candidata encontrada: "+currentguess.getKey());
 		
 	}
 
@@ -66,11 +67,11 @@ public class MasterImpl implements Master
 		
 		// Dividir o dicionario para os escravos
 		Integer quantidadeEscravos = slaves.size();
-		Integer tamanhoDicionario = 80367;
+		Integer tamanhoDicionario = 80368;
 		
 		// Percorre os escravos
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) {
-			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, 0, 100, 1, null);
+			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, 0, tamanhoDicionario-1, 1, this);
 		}
 		
 		Guess guess = new Guess();
