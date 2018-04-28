@@ -22,6 +22,7 @@ public class SlaveImpl implements Slave
 {
 	static java.util.UUID slaveKey = java.util.UUID.randomUUID();
 	static long currentindex;
+	static String slaveName;
 	
 	public static void main(String[] args)
 	{
@@ -32,6 +33,8 @@ public class SlaveImpl implements Slave
 			{
 				throw new Exception("Informe um nome para o escravo");
 			}
+			
+			slaveName = args[0];
 			
 			// Pega referência do registry
 			Registry registry = LocateRegistry.getRegistry();
@@ -44,11 +47,31 @@ public class SlaveImpl implements Slave
 			Slave objref = (Slave) UnicastRemoteObject.exportObject(obj, 0);
 			
 			// Registra-se no mestre
-			mestre.addSlave(objref, args[0], slaveKey);
+			//mestre.addSlave(objref, args[0], slaveKey);
+			
+			// Executa e Agenda a execução de addSlave
+			final Timer t = new Timer();
+			t.schedule(
+				new TimerTask() 
+			    {
+			    	@Override
+			        public void run() 
+			    	{
+			    		try 
+			    		{
+							executarAddSlave(mestre, objref);
+						} 
+			    		catch (RemoteException e) 
+			    		{
+							e.printStackTrace();
+						}
+			        }
+			    }, 
+    		0, 3000);
 			
 			// Agenda a execução de checkpoint
-			final Timer t = new Timer();
-	        t.schedule(
+			final Timer t2 = new Timer();
+	        t2.schedule(
         		new TimerTask() 
 		        {
 		        	@Override
@@ -76,6 +99,11 @@ public class SlaveImpl implements Slave
 	public static void executarCheckpoint(Master m) throws RemoteException
 	{
 		m.checkpoint(slaveKey, 1, currentindex);
+	}
+	
+	public static void executarAddSlave(Master m, Slave s) throws RemoteException
+	{
+		m.addSlave(s, slaveName, slaveKey);
 	}
 	
 	/**

@@ -39,8 +39,11 @@ public class MasterImpl implements Master
 
 	@Override
 	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
+		
+		// Salva o escravo na lista (se existir, é substituido)
 		this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
 		
+		// Imprime aviso no mestre
 		System.err.println("Escravo registrado: "+this.slaves.get(slavekey).getSlaveName());
 		
 	}
