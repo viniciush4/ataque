@@ -63,7 +63,11 @@ public class MasterImpl implements Master
 	@Override
 	public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
 		
-		System.err.println("Checkpoint do escravo: "+slaveKey.toString());
+		// Salva o estado do escravo
+		slaves.get(slaveKey).setCurrentindex(currentindex);
+		
+		// Imprime aviso no mestre
+		System.err.println("Checkpoint do escravo: "+slaveKey.toString()+" CurrentIndex: "+slaves.get(slaveKey).getCurrentindex());
 	}
 
 	@Override

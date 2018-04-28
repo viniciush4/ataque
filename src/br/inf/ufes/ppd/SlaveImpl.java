@@ -21,6 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class SlaveImpl implements Slave 
 {
 	static java.util.UUID slaveKey = java.util.UUID.randomUUID();
+	static long currentindex;
 	
 	public static void main(String[] args)
 	{
@@ -63,7 +64,7 @@ public class SlaveImpl implements Slave
 						}
 	                }
 	            }, 
-	        5000, 10000);
+	        3000, 3000);
 			
 		}
 		catch (Exception e) 
@@ -74,7 +75,7 @@ public class SlaveImpl implements Slave
 	
 	public static void executarCheckpoint(Master m) throws RemoteException
 	{
-		m.checkpoint(slaveKey, 1, 1);
+		m.checkpoint(slaveKey, 1, currentindex);
 	}
 	
 	/**
@@ -130,6 +131,9 @@ public class SlaveImpl implements Slave
 				} 
 				catch (javax.crypto.BadPaddingException e) 
 				{
+					// Atualiza currentindex
+					currentindex = i;
+					
 					continue;
 				}
 				
@@ -146,6 +150,9 @@ public class SlaveImpl implements Slave
 					currentguess.setMessage(decrypted);
 					callbackinterface.foundGuess(slaveKey, attackNumber, i, currentguess);
 				}
+				
+				// Atualiza currentindex
+				currentindex = i;
 			}
 			
 			// Fecha o arquivo do dicionario
