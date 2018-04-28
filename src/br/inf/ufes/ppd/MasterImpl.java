@@ -40,7 +40,6 @@ public class MasterImpl implements Master
 		
 		System.err.println(this.slaves.get(slavekey).getSlaveName());
 		
-		
 	}
 
 	@Override
@@ -66,9 +65,13 @@ public class MasterImpl implements Master
 	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException {
 		
 		// Dividir o dicionario para os escravos
+		Integer quantidadeEscravos = slaves.size();
+		Integer tamanhoDicionario = 80367;
 		
-		// Chamar startSubAttack para cada escravo como abaixo:
-		// this.slaves.get(slavekey).getSlave().startSubAttack(null, null, 3, 6, 0, null);
+		// Percorre os escravos
+		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) {
+			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, 0, 100, 1, null);
+		}
 		
 		Guess guess = new Guess();
 		guess.setKey("Chave teste");
@@ -77,6 +80,7 @@ public class MasterImpl implements Master
 
 		Guess[] guesses = new Guess[1];
 		guesses[0] = guess;
+		
 		
 		return guesses;
 	}

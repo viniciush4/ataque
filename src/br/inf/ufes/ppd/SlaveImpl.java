@@ -83,23 +83,36 @@ public class SlaveImpl implements Slave
 			}
 			
 			// Percorre o intervalo solicitado no dicionario
-			for(long i=initialwordindex; i<=finalwordindex;i++) {
-				
+			for(long i=initialwordindex; i<=finalwordindex;i++) 
+			{
 				// Lê a palavra candidata
 				String palavra = lerArq.readLine();
+				byte[] decrypted = null;
 				
 				// Usa a palavra para descriptografar o ciphertext
-				byte[] key = palavra.getBytes();
-				SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
-				Cipher cipher = Cipher.getInstance("Blowfish");
-				cipher.init(Cipher.DECRYPT_MODE, keySpec);
-				byte[] decrypted = cipher.doFinal(ciphertext);
+				try
+				{
+					byte[] key = palavra.getBytes();
+					SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
+					Cipher cipher = Cipher.getInstance("Blowfish");
+					cipher.init(Cipher.DECRYPT_MODE, keySpec);
+					decrypted = cipher.doFinal(ciphertext);
+				} 
+				catch (javax.crypto.BadPaddingException e) 
+				{
+					continue;
+				}
+				
+				// Converte texto conhecido e mensagem descriptografada para String
+				String mensagem_descriptografada = new String(decrypted, "UTF-8");
+				String texto_conhecido = new String(knowntext, "UTF-8");
 				
 				// Verifica se o knowntext existe no texto descriptografado
-				if(decrypted.toString().contains(palavra)) {
-					
+				if(mensagem_descriptografada.contains(texto_conhecido)) 
+				{
 					// Avisa ao mestre 
 					System.err.println(palavra);
+					//callbackinterface.foundGuess(slaveKey, attackNumber, currentindex, currentguess);
 				}
 			}
 			
