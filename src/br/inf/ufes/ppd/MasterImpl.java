@@ -6,12 +6,15 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class MasterImpl implements Master 
 {
 	Map<java.util.UUID, SlaveStatus> slaves = new HashMap<java.util.UUID, SlaveStatus>();
+	ArrayList<Attack> attacks = new ArrayList<Attack>();
+	int lastAttackNumber = 0;
 	
 	public static void main(String args[]) 
 	{	
@@ -54,6 +57,7 @@ public class MasterImpl implements Master
 		
 		System.err.println("Palavra candidata encontrada: "+currentguess.getKey());
 		
+		this.attacks.get(attackNumber).guesses.add(currentguess);
 	}
 
 	@Override
@@ -65,27 +69,22 @@ public class MasterImpl implements Master
 	@Override
 	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException {
 		
+		// Cria um attack e adiciona-o na lista
+		Attack attack = new Attack(lastAttackNumber++);
+		this.attacks.add(attack.getAttackNumber(), attack);
+		
 		// Dividir o dicionario para os escravos
 		Integer quantidadeEscravos = slaves.size();
 		Integer tamanhoDicionario = 80368;
 		
 		// Percorre os escravos
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) {
-			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, 0, tamanhoDicionario-1, 1, this);
+			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, 0, tamanhoDicionario-1, attack.getAttackNumber(), this);
 		}
 		
-		// Junta todos os Guess encontrados
-		
-				
-		// Improviso de teste
-		Guess guess = new Guess();
-		guess.setKey("Chave teste");
-		guess.setMessage("Mensagem teste".getBytes());
-		Guess[] guesses = new Guess[1];
-		guesses[0] = guess;
-		
-		
+		// Retorna os guess encontrados neste ataque
+		Guess[] guesses = new Guess[attacks.get(attack.getAttackNumber()).guesses.size()];
+		attacks.get(attack.getAttackNumber()).guesses.toArray(guesses);
 		return guesses;
 	}
-
 }
