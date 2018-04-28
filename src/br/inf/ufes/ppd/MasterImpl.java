@@ -38,7 +38,7 @@ public class MasterImpl implements Master
 	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
 		this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
 		
-		System.err.println(this.slaves.get(slavekey).getSlaveName());
+		System.err.println("Escravo registrado: "+this.slaves.get(slavekey).getSlaveName());
 		
 	}
 
@@ -58,8 +58,8 @@ public class MasterImpl implements Master
 
 	@Override
 	public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
-		// TODO Auto-generated method stub
 		
+		System.err.println("Checkpoint do escravo: "+slaveKey.toString());
 	}
 
 	@Override
@@ -74,11 +74,13 @@ public class MasterImpl implements Master
 			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, 0, tamanhoDicionario-1, 1, this);
 		}
 		
+		// Junta todos os Guess encontrados
+		
+				
+		// Improviso de teste
 		Guess guess = new Guess();
 		guess.setKey("Chave teste");
 		guess.setMessage("Mensagem teste".getBytes());
-		
-
 		Guess[] guesses = new Guess[1];
 		guesses[0] = guess;
 		

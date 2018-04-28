@@ -8,9 +8,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -42,13 +45,38 @@ public class SlaveImpl implements Slave
 			// Registra-se no mestre
 			mestre.addSlave(objref, args[0], slaveKey);
 			
+			// Agenda a execução de checkpoint
+			final Timer t = new Timer();
+	        t.schedule(
+        		new TimerTask() 
+		        {
+		        	@Override
+		            public void run() 
+		        	{
+		        		try 
+		        		{
+							executarCheckpoint(mestre);
+						} 
+		        		catch (RemoteException e) 
+		        		{
+							e.printStackTrace();
+						}
+	                }
+	            }, 
+	        5000, 10000);
+			
 		}
 		catch (Exception e) 
 		{
 			e.printStackTrace();
 		}
 	}
-
+	
+	public static void executarCheckpoint(Master m) throws RemoteException
+	{
+		m.checkpoint(slaveKey, 1, 1);
+	}
+	
 	/**
 	 * Solicita a um escravo que inicie sua parte do ataque.
 	 * @param ciphertext mensagem critografada
@@ -119,6 +147,9 @@ public class SlaveImpl implements Slave
 					callbackinterface.foundGuess(slaveKey, attackNumber, i, currentguess);
 				}
 			}
+			
+			// Fecha o arquivo do dicionario
+			arq.close();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
