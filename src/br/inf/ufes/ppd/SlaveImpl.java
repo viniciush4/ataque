@@ -130,6 +130,8 @@ public class SlaveImpl implements Slave
 	{		
 		try 
 		{
+			System.err.println("Inicial: "+initialwordindex+" - Final: "+finalwordindex);
+			
 			// Lê o arquivo do dicionário
 			File arquivo = new File("../dictionary.txt");
 			FileReader arq = new FileReader(arquivo);

@@ -38,7 +38,7 @@ public class MasterImpl implements Master
 	}
 
 	@Override
-	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
+	public synchronized void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
 		
 		// Salva o escravo na lista (se existir, é substituido)
 		this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
@@ -49,7 +49,7 @@ public class MasterImpl implements Master
 	}
 
 	@Override
-	public void removeSlave(UUID slaveKey) throws RemoteException {
+	public synchronized void removeSlave(UUID slaveKey) throws RemoteException {
 		// TODO Auto-generated method stub
 		
 	}
@@ -84,9 +84,21 @@ public class MasterImpl implements Master
 		Integer quantidadeEscravos = slaves.size();
 		Integer tamanhoDicionario = 80368;
 		
+		Integer divisao = (tamanhoDicionario / quantidadeEscravos);
+		Integer mod = tamanhoDicionario % quantidadeEscravos;
+		
+		Integer indiceInicial = 0;
+		Integer indiceFinal = divisao-1;
+		if(mod>0) {indiceFinal++;mod--;}
+		
 		// Percorre os escravos
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) {
-			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, 0, tamanhoDicionario-1, attack.getAttackNumber(), this);
+			
+			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, indiceInicial, indiceFinal, attack.getAttackNumber(), this);
+			
+			indiceInicial = indiceFinal+1;
+			indiceFinal = indiceInicial+divisao-1;
+			if(mod>0) {indiceFinal++;mod--;}
 		}
 		
 		// Retorna os guess encontrados neste ataque
