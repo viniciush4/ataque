@@ -56,13 +56,23 @@ public class Cliente
 	    out.close();
 	}
 	
-	public static void main(String[] args) 
+	public static void main(String[] args) throws Exception 
 	{
 		Random numeroAleatorio = new Random();
 		
+		// Se os argumentos não foram fornecidos
+		if(args.length < 1) 
+		{
+			throw new Exception("Informe um nome para o arquivo.");
+		}
+		else if(args.length < 2)
+		{
+			throw new Exception("Informe uma palavra conhecida.");
+		}
+		
 		//Captura os parâmetros
-		String nomeArquivoCriptografado = (args.length < 1) ? null : args[0];
-		byte[] palavraConhecida = (args.length < 2) ? null : args[1].getBytes();
+		String nomeArquivoCriptografado = args[0];
+		byte[] palavraConhecida = args[1].getBytes();
 		int tamanhoVetorGerado = (args.length < 3) ? (1000 + numeroAleatorio.nextInt(99001)) : Integer.parseInt(args[2]);
 		
 		try
