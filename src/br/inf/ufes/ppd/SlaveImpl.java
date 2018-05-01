@@ -46,9 +46,6 @@ public class SlaveImpl implements Slave
 			SlaveImpl obj = new SlaveImpl();
 			Slave objref = (Slave) UnicastRemoteObject.exportObject(obj, 0);
 			
-			// Registra-se no mestre
-			//mestre.addSlave(objref, args[0], slaveKey);
-			
 			// Executa e Agenda a execução de addSlave
 			final Timer t = new Timer();
 			t.schedule(

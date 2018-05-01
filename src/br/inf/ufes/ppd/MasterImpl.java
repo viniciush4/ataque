@@ -94,12 +94,21 @@ public class MasterImpl implements Master
 		// Percorre os escravos
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) {
 			
-			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, indiceInicial, indiceFinal, attack.getAttackNumber(), this);
+			System.err.println(attack.getAttackNumber());
+			Master m = this;
+			ThreadMasterStartSubAttack subAttack = new ThreadMasterStartSubAttack(
+				entry, ciphertext, knowntext, indiceInicial, indiceFinal, attack.getAttackNumber(), m
+			);
+			Thread t = new Thread(subAttack);
+			t.start();
 			
 			indiceInicial = indiceFinal+1;
 			indiceFinal = indiceInicial+divisao-1;
 			if(mod>0) {indiceFinal++;mod--;}
 		}
+		
+		// Aguarda todos os escravos terminar
+		
 		
 		// Retorna os guess encontrados neste ataque
 		Guess[] guesses = new Guess[attacks.get(attack.getAttackNumber()).guesses.size()];
