@@ -29,15 +29,20 @@ public class SlaveImpl implements Slave
 		try 
 		{
 			// Se não foi fornecido o primeiro argumento
-			if(args[0].isEmpty()) 
+			if(args.length < 1)
 			{
-				throw new Exception("Informe um nome para o escravo");
+				throw new Exception("Falta um parâmetro, verifique se o IP do Mestre foi fornecido.");
+			}
+			else if(args.length < 2)
+			{
+				throw new Exception("Falta um parâmetro, verifique se um nome para o escravo foi fornecido");
 			}
 			
-			slaveName = args[0];
+			String ipMestre = args[0];
+			slaveName = args[1];
 			
 			// Pega referência do registry
-			Registry registry = LocateRegistry.getRegistry();
+			Registry registry = LocateRegistry.getRegistry(ipMestre);
 			
 			// Faz lookup no mestre
 			Master mestre = (Master) registry.lookup("mestre");

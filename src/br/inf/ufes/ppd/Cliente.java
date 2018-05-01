@@ -61,19 +61,24 @@ public class Cliente
 		Random numeroAleatorio = new Random();
 		
 		// Se os argumentos não foram fornecidos
-		if(args.length < 1) 
+		if(args.length < 1)
 		{
-			throw new Exception("Informe um nome para o arquivo.");
+			throw new Exception("Falta um parâmetro, verifique se o IP do Mestre foi fornecido.");
 		}
-		else if(args.length < 2)
+		else if(args.length < 2) 
 		{
-			throw new Exception("Informe uma palavra conhecida.");
+			throw new Exception("Falta um parâmetro, verifique se um nome para o arquivo foi fornecido.");
+		}
+		else if(args.length < 3)
+		{
+			throw new Exception("Falta um parâmetro, verifique se uma palavra conhecida foi fornecida.");
 		}
 		
 		//Captura os parâmetros
-		String nomeArquivoCriptografado = args[0];
-		byte[] palavraConhecida = args[1].getBytes();
-		int tamanhoVetorGerado = (args.length < 3) ? (1000 + numeroAleatorio.nextInt(99001)) : Integer.parseInt(args[2]);
+		String ipMestre = args[0];
+		String nomeArquivoCriptografado = args[1];
+		byte[] palavraConhecida = args[2].getBytes();
+		int tamanhoVetorGerado = (args.length < 4) ? (1000 + numeroAleatorio.nextInt(99001)) : Integer.parseInt(args[3]);
 		
 		try
 		{
@@ -81,7 +86,7 @@ public class Cliente
 			byte[] mensagem = lerArquivoCriptografado(nomeArquivoCriptografado,tamanhoVetorGerado);
 			
 			//Invoca o mestre passando o vetor de bytes e a palavra conhecida
-			Registry registry = LocateRegistry.getRegistry();
+			Registry registry = LocateRegistry.getRegistry(ipMestre);
 		
 			Master mestre = (Master) registry.lookup("mestre");
 			
