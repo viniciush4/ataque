@@ -91,15 +91,17 @@ public class MasterImpl implements Master
 		Integer indiceFinal = divisao-1;
 		if(mod>0) {indiceFinal++;mod--;}
 		
+		ArrayList<Thread> threads = new ArrayList<Thread>();
+		
 		// Percorre os escravos
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) {
 			
 			System.err.println(attack.getAttackNumber());
-			Master m = this;
 			ThreadMasterStartSubAttack subAttack = new ThreadMasterStartSubAttack(
-				entry, ciphertext, knowntext, indiceInicial, indiceFinal, attack.getAttackNumber(), m
+				entry, ciphertext, knowntext, indiceInicial, indiceFinal, attack.getAttackNumber(), this
 			);
 			Thread t = new Thread(subAttack);
+			threads.add(t);
 			t.start();
 			
 			indiceInicial = indiceFinal+1;
@@ -108,7 +110,14 @@ public class MasterImpl implements Master
 		}
 		
 		// Aguarda todos os escravos terminar
-		
+		for(Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				// Tratar a falha no escravo
+				e.printStackTrace();
+			}
+		}
 		
 		// Retorna os guess encontrados neste ataque
 		Guess[] guesses = new Guess[attacks.get(attack.getAttackNumber()).guesses.size()];
