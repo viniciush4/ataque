@@ -58,7 +58,10 @@ public class MasterImpl implements Master
 	public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess)
 			throws RemoteException {
 		
-		System.err.println("Palavra candidata encontrada: "+currentguess.getKey());
+		//System.err.println("Palavra candidata encontrada: "+currentguess.getKey());
+		System.err.println(	"Escravo: "+slaves.get(slaveKey).getSlaveName()+
+							", Índice atual: "+slaves.get(slaveKey).getCurrentindex()+
+							", Palavra candidata encontrada: "+currentguess.getKey());
 		
 		this.attacks.get(attackNumber).guesses.add(currentguess);
 	}
@@ -70,7 +73,10 @@ public class MasterImpl implements Master
 		slaves.get(slaveKey).setCurrentindex(currentindex);
 		
 		// Imprime aviso no mestre
-		System.err.println("Checkpoint do escravo: "+slaveKey.toString()+" CurrentIndex: "+slaves.get(slaveKey).getCurrentindex());
+		//System.err.println("Checkpoint do escravo: "+slaveKey.toString()+" CurrentIndex: "+slaves.get(slaveKey).getCurrentindex());
+		System.err.println(	"Escravo: "+slaves.get(slaveKey).getSlaveName()+
+							", Tempo decorrido: TEMPO"+
+							", Índice atual: "+slaves.get(slaveKey).getCurrentindex());
 	}
 
 	@Override
