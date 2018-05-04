@@ -9,23 +9,41 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Random;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 public class Cliente 
 {
-	private static byte[] lerArquivoCriptografado(String nomeArquivo, int tamanhoVetorGerado) throws IOException
+	private static byte[] lerArquivoCriptografado(String nomeArquivo, byte[] palavraConhecida, int tamanhoVetorGerado) throws IOException
 	{
 		File arquivo = new File(nomeArquivo);
-		byte[] mensagem;
+		byte[] mensagem = null;
 		
 		//Verifica se o arquivo não existe
 		if(!arquivo.exists())
 		{
-			//Cria um vetor de bytes aleatório
-	        mensagem = new byte[tamanhoVetorGerado];
-	        new Random().nextBytes(mensagem);
-	        //SecureRandom.getInstanceStrong().nextBytes(mensagem);
-	        
-	        //Salva o vetor em um arquivo
-			salvarArquivo(nomeArquivo, mensagem);
+			try
+			{
+				//Cria um vetor de bytes aleatório
+		        mensagem = new byte[tamanhoVetorGerado];
+		        new Random().nextBytes(mensagem);
+		        
+		        //Criptografa o vetor de bytes aleatório
+		        byte[] key = palavraConhecida;
+				SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
+	
+				Cipher cipher = Cipher.getInstance("Blowfish");
+				cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+	
+				mensagem = cipher.doFinal(mensagem);
+		        
+		        //Salva o vetor em um arquivo
+				salvarArquivo(nomeArquivo, mensagem);
+			}
+			catch (Exception e) 
+			{	
+				e.printStackTrace();
+			}			
 		}
 		else
 		{	
@@ -83,7 +101,7 @@ public class Cliente
 		try
 		{
 			//Armazena o vetor de bytes
-			byte[] mensagem = lerArquivoCriptografado(nomeArquivoCriptografado,tamanhoVetorGerado);
+			byte[] mensagem = lerArquivoCriptografado(nomeArquivoCriptografado, palavraConhecida, tamanhoVetorGerado);
 			
 			//Invoca o mestre passando o vetor de bytes e a palavra conhecida
 			Registry registry = LocateRegistry.getRegistry(ipMestre);
