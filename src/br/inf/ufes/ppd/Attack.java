@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Attack {
 	
 	private int attackNumber;
+	ArrayList<SubAttack> subatacks = new ArrayList<SubAttack>();
 	ArrayList<Guess> guesses = new ArrayList<Guess>();
 	
 	public Attack(int attackNumber) {

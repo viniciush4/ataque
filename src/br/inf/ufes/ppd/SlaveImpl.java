@@ -20,36 +20,35 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class SlaveImpl implements Slave 
 {
+	// Identificação única do escravo
 	static java.util.UUID slaveKey = java.util.UUID.randomUUID();
-	static long currentindex;
+	
+	// Nome do escravo
 	static String slaveName;
+	
+	
+	static long currentindex;
 	
 	public static void main(String[] args)
 	{
 		try 
 		{
-			// Se não foi fornecido o primeiro argumento
-			if(args.length < 1)
-			{
-				throw new Exception("Falta um parâmetro, verifique se o IP do Mestre foi fornecido.");
-			}
-			else if(args.length < 2)
-			{
-				throw new Exception("Falta um parâmetro, verifique se um nome para o escravo foi fornecido");
+			// Se não foram fornecidos exatamente dois argumentos
+			if(args.length < 2) {
+				throw new Exception("Uso: SlaveImpl <IP_DO_MESTRE> <NOME_ESCRAVO>");
 			}
 			
-			String ipMestre = args[0];
+			// Guarda o nome do escravo
 			slaveName = args[1];
 			
-			// Pega referência do registry
-			Registry registry = LocateRegistry.getRegistry(ipMestre);
+			// Pega referência do registry a partir do IP fornecido
+			Registry registry = LocateRegistry.getRegistry(args[0]);
 			
-			// Faz lookup no mestre
+			// Pega a referência do mestre no registry
 			Master mestre = (Master) registry.lookup("mestre");
 			
-			// Cria referencia de si para exportação
-			SlaveImpl obj = new SlaveImpl();
-			Slave objref = (Slave) UnicastRemoteObject.exportObject(obj, 0);
+			// Cria uma referência de si para exportação
+			Slave objref = (Slave) UnicastRemoteObject.exportObject(new SlaveImpl(), 0);
 			
 			// Executa e Agenda a execução de addSlave
 			final Timer t = new Timer();
@@ -137,7 +136,6 @@ public class SlaveImpl implements Slave
 			// Lê o arquivo do dicionário
 			File arquivo = new File("../dictionary.txt");
 			FileReader arq = new FileReader(arquivo);
-			@SuppressWarnings("resource")
 			BufferedReader lerArq = new BufferedReader(arq);
 			
 			// Avança até initialwordindex

@@ -12,15 +12,20 @@ import java.util.UUID;
 
 public class MasterImpl implements Master 
 {
+	// Lista de escravos registrados no mestre
 	Map<java.util.UUID, SlaveStatus> slaves = new HashMap<java.util.UUID, SlaveStatus>();
+	
+	// Lista de ataques em andamento
 	ArrayList<Attack> attacks = new ArrayList<Attack>();
+	
+	// Número (identificador) do último ataque
 	int lastAttackNumber = 0;
 	
 	public static void main(String args[]) 
 	{	
 		try 
 		{
-			// Cria referência de si para exportação
+			// Cria uma referência desta classe para exportação
 			Master objref = (Master) UnicastRemoteObject.exportObject(new MasterImpl(), 0);
 			
 			// Pega referência do registry
@@ -32,7 +37,9 @@ public class MasterImpl implements Master
 			// Informa o status do mestre
 			System.err.println("Master ready");
 			
-		} catch (Exception e) {
+		} 
+		catch (Exception e) 
+		{
 			e.printStackTrace();
 		}
 	}
@@ -40,7 +47,7 @@ public class MasterImpl implements Master
 	@Override
 	public synchronized void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
 		
-		// Salva o escravo na lista (se existir, é substituido)
+		// Salva o escravo na lista de escravos (se existir, é substituido)
 		this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
 		
 		// Imprime aviso no mestre
@@ -58,7 +65,9 @@ public class MasterImpl implements Master
 	public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess)
 			throws RemoteException {
 		
-		System.err.println("Palavra candidata encontrada: "+currentguess.getKey());
+		System.err.println(	"Escravo: "+slaves.get(slaveKey).getSlaveName()+
+				", Índice atual: "+slaves.get(slaveKey).getCurrentindex()+
+				", Palavra candidata encontrada: "+currentguess.getKey());
 		
 		this.attacks.get(attackNumber).guesses.add(currentguess);
 	}
@@ -66,60 +75,54 @@ public class MasterImpl implements Master
 	@Override
 	public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
 		
+		// Busca escravo na lista
+		SlaveStatus slave = slaves.get(slaveKey);
+		
 		// Salva o estado do escravo
-		slaves.get(slaveKey).setCurrentindex(currentindex);
+		slave.setCurrentindex(currentindex);
 		
 		// Imprime aviso no mestre
-		System.err.println("Checkpoint do escravo: "+slaveKey.toString()+" CurrentIndex: "+slaves.get(slaveKey).getCurrentindex());
+		System.err.println(	"Escravo: "+slave.getSlaveName()+
+				", Tempo decorrido: TEMPO"+
+				", Índice atual: "+slave.getCurrentindex());
 	}
 
 	@Override
-	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException {
-		
-		// Cria um attack e adiciona-o na lista
+	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException 
+	{
+		// Cria um ataque
 		Attack attack = new Attack(lastAttackNumber++);
+		
+		// Adiciona o ataque na lista de ataques
 		this.attacks.add(attack.getAttackNumber(), attack);
 		
-		// Dividir o dicionario para os escravos
-		Integer quantidadeEscravos = slaves.size();
-		Integer tamanhoDicionario = 80368;
-		
-		Integer divisao = (tamanhoDicionario / quantidadeEscravos);
-		Integer mod = tamanhoDicionario % quantidadeEscravos;
-		
-		Integer indiceInicial = 0;
-		Integer indiceFinal = divisao-1;
-		if(mod>0) {indiceFinal++;mod--;}
-		
-		ArrayList<Thread> threads = new ArrayList<Thread>();
+		// Calcula os índices do dicionário para o primeiro escravo
+		int quantidadeEscravos = slaves.size();
+		int tamanhoDicionario = 80368;
+		int divisao = (tamanhoDicionario / quantidadeEscravos);
+		int mod = tamanhoDicionario % quantidadeEscravos;
+		int indiceInicial = 0;
+		int indiceFinal = divisao-1;
+		if(mod>0) {indiceFinal++; mod--;}
 		
 		// Percorre os escravos
-		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) {
+		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) 
+		{
+			// Cria um sub-ataque dentro do ataque
+			attack.subatacks.add(new SubAttack(entry.getKey()));
 			
-			System.err.println(attack.getAttackNumber());
-			ThreadMasterStartSubAttack subAttack = new ThreadMasterStartSubAttack(
-				entry, ciphertext, knowntext, indiceInicial, indiceFinal, attack.getAttackNumber(), this
-			);
-			Thread t = new Thread(subAttack);
-			threads.add(t);
-			t.start();
+			// Chama startSubAttack
+			entry.getValue().getSlave().startSubAttack(ciphertext, knowntext, indiceInicial, indiceFinal, attack.getAttackNumber(), this);
 			
+			// Atualiza os índices do dicionário para o próximo escravo
 			indiceInicial = indiceFinal+1;
 			indiceFinal = indiceInicial+divisao-1;
-			if(mod>0) {indiceFinal++;mod--;}
+			if(mod>0) {indiceFinal++; mod--;}
 		}
 		
-		// Aguarda todos os escravos terminar
-		for(Thread t : threads) {
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-				// Tratar a falha no escravo
-				e.printStackTrace();
-			}
-		}
+		// Espera o último checkpoint
 		
-		// Retorna os guess encontrados neste ataque
+		// Retorna as palavras candidatas encontradas neste ataque
 		Guess[] guesses = new Guess[attacks.get(attack.getAttackNumber()).guesses.size()];
 		attacks.get(attack.getAttackNumber()).guesses.toArray(guesses);
 		return guesses;
