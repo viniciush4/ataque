@@ -2,18 +2,44 @@ package br.inf.ufes.ppd;
 
 public class SubAttack {
 
-	private static long horaInicio = System.currentTimeMillis();
-	private java.util.UUID slaveKey;
+	private long horaInicio = System.currentTimeMillis();
+	private int attackNumber;
+	private int subAttackNumber;
+	private long currentindex;
+	private long finalindex;
 	
-	public SubAttack(java.util.UUID slaveKey) {
-		this.slaveKey = slaveKey;
+	public SubAttack(int subAttackNumber, int attackNumber, long finalindex) {
+		this.subAttackNumber = subAttackNumber;
+		this.attackNumber = attackNumber;
+		this.finalindex = finalindex;
 	}
 
-	public static long getHoraInicio() {
+	public long getHoraInicio() {
 		return horaInicio;
 	}
 
-	public java.util.UUID getSlaveKey() {
-		return slaveKey;
+	public int getSubAttackNumber() {
+		return subAttackNumber;
+	}
+
+	public long getCurrentindex() {
+		return currentindex;
+	}
+
+	public void setCurrentindex(long currentindex) throws Exception {
+		this.currentindex = currentindex;
+		
+		// Se for o último indice
+		if(this.currentindex == this.finalindex) {
+			throw new Exception();
+		}
+	}
+
+	public int getAttackNumber() {
+		return attackNumber;
+	}
+
+	public long getFinalindex() {
+		return finalindex;
 	}
 }
