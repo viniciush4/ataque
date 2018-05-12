@@ -82,17 +82,9 @@ public class Cliente
 		Random numeroAleatorio = new Random();
 		
 		// Se os argumentos não foram fornecidos
-		if(args.length < 1)
+		if(args.length < 3)
 		{
-			throw new Exception("Falta um parâmetro, verifique se o IP do Mestre foi fornecido.");
-		}
-		else if(args.length < 2) 
-		{
-			throw new Exception("Falta um parâmetro, verifique se um nome para o arquivo foi fornecido.");
-		}
-		else if(args.length < 3)
-		{
-			throw new Exception("Falta um parâmetro, verifique se uma palavra conhecida foi fornecida.");
+			throw new Exception("Uso: Cliente <IP_DO_MESTRE> <NOME_ARQUIVO> <PALAVRA_CONHECIDA>");
 		}
 		
 		//Captura os parâmetros

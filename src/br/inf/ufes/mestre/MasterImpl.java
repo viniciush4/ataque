@@ -33,6 +33,13 @@ public class MasterImpl implements Master
 	{	
 		try 
 		{
+			// Se não foi fornecido exatamente um argumento
+			if(args.length < 1) {
+				throw new Exception("Uso: MasterImpl <IP_DESTA_MÁQUINA>");
+			}
+			
+			System.setProperty("java.rmi.server.hostname", args[0]);
+			
 			// Cria uma referência desta classe para exportação
 			Master objref = (Master) UnicastRemoteObject.exportObject(new MasterImpl(), 0);
 			
