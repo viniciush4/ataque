@@ -1,4 +1,4 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.escravo;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,6 +9,9 @@ import java.util.TimerTask;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+
+import br.inf.ufes.ppd.Guess;
+import br.inf.ufes.ppd.SlaveManager;
 
 public class ExecuteSubAttack implements Runnable 
 {

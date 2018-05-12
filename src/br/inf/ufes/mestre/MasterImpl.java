@@ -1,4 +1,4 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.mestre;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -7,6 +7,10 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import br.inf.ufes.ppd.Guess;
+import br.inf.ufes.ppd.Master;
+import br.inf.ufes.ppd.Slave;
 
 public class MasterImpl implements Master 
 {
@@ -49,7 +53,7 @@ public class MasterImpl implements Master
 	}
 
 	@Override
-	public synchronized void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
+	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
 		
 		// Salva o escravo na lista de escravos (se existir, é substituido)
 		synchronized(slaves) {
@@ -76,6 +80,7 @@ public class MasterImpl implements Master
 		System.err.println("Escravo removido: "+slaveName);
 		
 		// Distribui o trabalho do escravo removido para os demais
+		
 	}
 
 	@Override

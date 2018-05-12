@@ -1,6 +1,8 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.mestre;
 
 import java.util.ArrayList;
+
+import br.inf.ufes.ppd.Guess;
 
 public class Attack {
 	

@@ -1,5 +1,6 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.mestre;
 
+import br.inf.ufes.ppd.Slave;
 
 public class SlaveStatus {
 

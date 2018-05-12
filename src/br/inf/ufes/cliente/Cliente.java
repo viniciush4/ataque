@@ -1,4 +1,4 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.cliente;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +11,9 @@ import java.util.Random;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+
+import br.inf.ufes.ppd.Guess;
+import br.inf.ufes.ppd.Master;
 
 public class Cliente 
 {

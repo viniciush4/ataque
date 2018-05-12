@@ -1,8 +1,10 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.mestre;
 
 import java.rmi.RemoteException;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import br.inf.ufes.ppd.SlaveManager;
 
 public class SubAttack {
 
@@ -30,9 +32,12 @@ public class SubAttack {
 		    	@Override
 		        public void run() 
 		    	{
-		    		try {
+		    		try 
+		    		{
 		    			monitorarSubattack();
-		    		} catch(RemoteException e) {
+		    		} 
+		    		catch(RemoteException e) 
+		    		{
 		    			e.printStackTrace();
 		    		}
 		        }

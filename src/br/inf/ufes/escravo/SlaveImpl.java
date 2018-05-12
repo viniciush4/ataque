@@ -1,4 +1,4 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.escravo;
 
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
@@ -8,6 +8,10 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import br.inf.ufes.ppd.Master;
+import br.inf.ufes.ppd.Slave;
+import br.inf.ufes.ppd.SlaveManager;
 
 public class SlaveImpl implements Slave 
 {
@@ -60,14 +64,22 @@ public class SlaveImpl implements Slave
 			    		{
 							executarAddSlave();
 						} 
-			    		catch (RemoteException | NotBoundException e) 
+			    		catch (RemoteException e) 
 			    		{
 							e.printStackTrace();
 						}
+			    		catch (NotBoundException e)
+			    		{
+			    			System.err.println("O mestre não está ativo");
+			    		}
 			        }
 			    }, 
     		0, 3000);
 			
+		}
+		catch (NotBoundException e)
+		{
+			System.err.println("O mestre não está ativo");
 		}
 		catch (Exception e) 
 		{
