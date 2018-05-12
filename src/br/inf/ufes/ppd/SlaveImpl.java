@@ -1,5 +1,7 @@
 package br.inf.ufes.ppd;
 
+import java.rmi.ConnectException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -10,10 +12,19 @@ import java.util.TimerTask;
 public class SlaveImpl implements Slave 
 {
 	// Identificação única do escravo
-	static java.util.UUID slaveKey = java.util.UUID.randomUUID();
+	private static java.util.UUID slaveKey = java.util.UUID.randomUUID();
 	
 	// Nome do escravo
-	static String slaveName;
+	private static String slaveName;
+	
+	// Referencia do escravo
+	private static Slave objref;
+	
+	// Referencia do mestre
+	private static Master mestre;
+	
+	// Referencia do registry
+	private static Registry registry;
 	
 	
 	public static void main(String[] args)
@@ -29,13 +40,13 @@ public class SlaveImpl implements Slave
 			slaveName = args[1];
 			
 			// Pega referência do registry a partir do IP fornecido
-			Registry registry = LocateRegistry.getRegistry(args[0]);
+			registry = LocateRegistry.getRegistry(args[0]);
 			
 			// Pega a referência do mestre no registry
-			Master mestre = (Master) registry.lookup("mestre");
+			mestre = (Master) registry.lookup("mestre");
 			
 			// Cria uma referência de si para exportação
-			Slave objref = (Slave) UnicastRemoteObject.exportObject(new SlaveImpl(), 0);
+			objref = (Slave) UnicastRemoteObject.exportObject(new SlaveImpl(), 0);
 			
 			// Executa e Agenda a execução de addSlave
 			final Timer t = new Timer();
@@ -47,9 +58,9 @@ public class SlaveImpl implements Slave
 			    	{
 			    		try 
 			    		{
-							executarAddSlave(mestre, objref);
+							executarAddSlave();
 						} 
-			    		catch (RemoteException e) 
+			    		catch (RemoteException | NotBoundException e) 
 			    		{
 							e.printStackTrace();
 						}
@@ -64,9 +75,17 @@ public class SlaveImpl implements Slave
 		}
 	}
 	
-	public static void executarAddSlave(Master m, Slave s) throws RemoteException
+	private static void executarAddSlave() throws RemoteException, NotBoundException
 	{
-		m.addSlave(s, slaveName, slaveKey);
+		try 
+		{
+			mestre.addSlave(objref, slaveName, slaveKey);
+		}
+		catch (ConnectException e) 
+		{
+			// Pega a referência do mestre no registry
+			mestre = (Master) registry.lookup("mestre");
+		}
 	}
 	
 	/**

@@ -52,7 +52,9 @@ public class MasterImpl implements Master
 	public synchronized void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
 		
 		// Salva o escravo na lista de escravos (se existir, é substituido)
-		this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
+		synchronized(slaves) {
+			this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
+		}
 		
 		// Imprime aviso no mestre
 		System.err.println("Escravo registrado: "+this.slaves.get(slavekey).getSlaveName());
@@ -60,9 +62,20 @@ public class MasterImpl implements Master
 	}
 
 	@Override
-	public synchronized void removeSlave(UUID slaveKey) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void removeSlave(UUID slaveKey) throws RemoteException {
 		
+		// Guarda o nome do escravo
+		String slaveName = this.slaves.get(slaveKey).getSlaveName();
+		
+		// Remove escravo
+		synchronized(slaves) {
+			this.slaves.remove(slaveKey);
+		}
+
+		// Imprime aviso no mestre
+		System.err.println("Escravo removido: "+slaveName);
+		
+		// Distribui o trabalho do escravo removido para os demais
 	}
 
 	@Override
@@ -112,21 +125,16 @@ public class MasterImpl implements Master
 		{
 			// Atualiza o currentindex
 			this.subAttacks.get(attackNumber).setCurrentindex(currentindex);
-		} 
+		}
+		
+		// Se for o último index, entra na exceção
 		catch (Exception e) 
 		{
 			// Descobre o número do ataque (attackNumber se refere ao sub-ataque)
 			int numeroAttack = this.subAttacks.get(attackNumber).getAttackNumber();
 			
-			try 
-			{
-				// Decrementa quantidade de subataques no ataque correspondente
-				this.attacks.get(numeroAttack).decrementaSubataquesEmAndamento();
-			} 
-			catch (Exception e1) 
-			{
-				
-			}
+			// Decrementa quantidade de subataques no ataque correspondente
+			this.attacks.get(numeroAttack).decrementaSubataquesEmAndamento();
 			
 			// Remove subataque da lista
 			this.subAttacks.remove(attackNumber);
@@ -155,7 +163,7 @@ public class MasterImpl implements Master
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) 
 		{
 			// Cria um sub-ataque
-			SubAttack subattack = new SubAttack(lastSubattackNumber++, attack.getAttackNumber(), indiceFinal);
+			SubAttack subattack = new SubAttack(lastSubattackNumber++, attack.getAttackNumber(), indiceFinal, entry.getKey(), this);
 			
 			// Adiciona o sub-ataque na lista de sub-ataques
 			this.subAttacks.put(subattack.getSubAttackNumber(), subattack);

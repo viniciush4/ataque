@@ -24,11 +24,7 @@ public class Attack {
 		this.quantidadeSubataquesEmAndamento++;
 	}
 	
-	public void decrementaSubataquesEmAndamento() throws Exception {
+	public void decrementaSubataquesEmAndamento() {
 		this.quantidadeSubataquesEmAndamento--;
-		
-		if(this.quantidadeSubataquesEmAndamento == 0) {
-			throw new Exception();
-		}
 	}
 }
