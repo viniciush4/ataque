@@ -44,7 +44,7 @@ public class MasterImpl implements Master
 			Master objref = (Master) UnicastRemoteObject.exportObject(new MasterImpl(), 0);
 			
 			// Pega referência do registry
-			Registry registry = LocateRegistry.getRegistry();
+			Registry registry = LocateRegistry.getRegistry("127.0.0.1");
 			
 			// Faz o bind
 			registry.rebind("mestre", objref);
