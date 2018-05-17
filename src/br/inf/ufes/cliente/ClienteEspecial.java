@@ -104,13 +104,14 @@ public class ClienteEspecial
 		// Se os argumentos não foram fornecidos
 		if(args.length < 3)
 		{
-			throw new Exception("Uso: Cliente <IP_DO_MESTRE> <NÚMERO_DE_ATAQUES> <TAMANHO_VETOR_INICIAL>");
+			throw new Exception("Uso: Cliente <IP_DO_MESTRE> <NÚMERO_DE_ATAQUES> <TAMANHO_VETOR_INICIAL> <INTERVALO_VETORES>");
 		}
 		
 		//Captura os parâmetros
 		String ipMestre = args[0];
 		int numeroDeAtaques = Integer.parseInt(args[1]);
 		int tamanhoVetorGerado = Integer.parseInt(args[2]); 
+		int intervaloVetor = Integer.parseInt(args[3]);
 		
 		Cronometro cronometro = new Cronometro();
 		byte[] mensagem;
@@ -154,7 +155,7 @@ public class ClienteEspecial
 				cronometro.zerar();
 				
 				//Aumenta o tamanho do vetor
-				tamanhoVetorGerado += 100;
+				tamanhoVetorGerado += intervaloVetor;
 			}
 			
 			
