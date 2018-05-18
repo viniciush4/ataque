@@ -104,7 +104,7 @@ public class ClienteEspecial
 		// Se os argumentos não foram fornecidos
 		if(args.length < 3)
 		{
-			throw new Exception("Uso: Cliente <IP_DO_MESTRE> <NÚMERO_DE_ATAQUES> <TAMANHO_VETOR_INICIAL> <INTERVALO_VETORES>");
+			throw new Exception("Uso: ClienteEspecial <IP_DO_MESTRE> <NÚMERO_DE_ATAQUES> <TAMANHO_VETOR_INICIAL> <INTERVALO_VETORES>");
 		}
 		
 		//Captura os parâmetros

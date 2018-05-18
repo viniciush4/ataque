@@ -83,6 +83,10 @@ public class SubAttack {
 		
 		// Se for o último indice
 		if(this.currentindex == this.finalindex) {
+			
+			// Para de monitorar este sub-ataque
+			t.cancel();
+			
 			throw new Exception();
 		}
 	}
