@@ -46,7 +46,7 @@ public class SlaveImpl implements Slave
 			slaveName = args[2];
 			
 			// Pega referência do registry a partir do IP fornecido
-			Registry registry = LocateRegistry.getRegistry(args[1]);
+			registry = LocateRegistry.getRegistry(args[1]);
 			
 			// Pega a referência do mestre no registry
 			mestre = (Master) registry.lookup("mestre");
