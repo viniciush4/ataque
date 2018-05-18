@@ -35,16 +35,18 @@ public class SlaveImpl implements Slave
 	{
 		try 
 		{
-			// Se não foram fornecidos exatamente dois argumentos
-			if(args.length < 2) {
-				throw new Exception("Uso: SlaveImpl <IP_DO_MESTRE> <NOME_ESCRAVO>");
+			// Se não foram fornecidos exatamente três argumentos
+			if(args.length < 3) {
+				throw new Exception("Uso: SlaveImpl <IP_DESTA_MÁQUINA> <IP_DO_MESTRE> <NOME_ESCRAVO>");
 			}
+					
+			System.setProperty("java.rmi.server.hostname", args[0]);
 			
 			// Guarda o nome do escravo
-			slaveName = args[1];
+			slaveName = args[2];
 			
 			// Pega referência do registry a partir do IP fornecido
-			registry = LocateRegistry.getRegistry(args[0]);
+			Registry registry = LocateRegistry.getRegistry(args[1]);
 			
 			// Pega a referência do mestre no registry
 			mestre = (Master) registry.lookup("mestre");
