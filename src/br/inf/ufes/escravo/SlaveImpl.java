@@ -74,7 +74,7 @@ public class SlaveImpl implements Slave
 			    		}
 			        }
 			    }, 
-    		0, 3000);
+    		0, 30000);
 			
 		}
 		catch (NotBoundException e)

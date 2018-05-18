@@ -61,7 +61,7 @@ public class ExecuteSubAttack implements Runnable
 					}
                 }
             }, 
-        3000, 3000);
+        10000, 10000);
 	}
 	
 	public void executarCheckpoint() throws RemoteException
@@ -139,7 +139,7 @@ public class ExecuteSubAttack implements Runnable
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.getMessage();
 		}
 		
 	}

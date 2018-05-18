@@ -48,7 +48,7 @@ public class MasterImpl implements Master
 		} 
 		catch (Exception e) 
 		{
-			e.printStackTrace();
+			e.getMessage();
 		}
 	}
 
@@ -61,26 +61,28 @@ public class MasterImpl implements Master
 		}
 		
 		// Imprime aviso no mestre
-		System.err.println("Escravo registrado: "+this.slaves.get(slavekey).getSlaveName());
+		System.err.println("Escravo registrado: "+slaveName);
 		
 	}
 
 	@Override
 	public void removeSlave(UUID slaveKey) throws RemoteException {
 		
-		// Guarda o nome do escravo
-		String slaveName = this.slaves.get(slaveKey).getSlaveName();
-		
 		// Remove escravo
 		synchronized(slaves) {
-			this.slaves.remove(slaveKey);
+			
+			// Verifica se o escravo ainda está na lista
+			if(this.slaves.get(slaveKey) != null)
+			{
+				// Guarda o nome do escravo
+				String slaveName = this.slaves.get(slaveKey).getSlaveName();
+				
+				this.slaves.remove(slaveKey);
+				
+				// Imprime aviso no mestre
+				System.err.println("Escravo removido: "+slaveName);
+			}
 		}
-
-		// Imprime aviso no mestre
-		System.err.println("Escravo removido: "+slaveName);
-		
-		// Distribui o trabalho do escravo removido para os demais
-		
 	}
 
 	@Override
@@ -102,47 +104,58 @@ public class MasterImpl implements Master
 	@Override
 	public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
 		
-		// Busca escravo na lista
-		SlaveStatus slave = slaves.get(slaveKey);
+		synchronized(slaves) {
+		synchronized(subAttacks) {
+		synchronized(attacks) {	
+			
+			// Busca escravo na lista
+			SlaveStatus slave = slaves.get(slaveKey);
+			
+			// Se foi encontrado o escravo na lista
+			if(slave != null) {
 				
-		// Calcula tempo gasto
-		long horaInicio = this.subAttacks.get(attackNumber).getHoraInicio();
-		long horaAtual = System.currentTimeMillis();
-		long tempo = horaAtual - horaInicio;
+				// Calcula tempo gasto
+				long horaInicio = this.subAttacks.get(attackNumber).getHoraInicio();
+				long horaAtual = System.currentTimeMillis();
+				long tempo = horaAtual - horaInicio;
+				
+				final long FATOR_SEGUNDO = 1000;
+		        final long FATOR_MINUTO = FATOR_SEGUNDO * 60;
+		        final long FATOR_HORA = FATOR_MINUTO * 60;
+		        
+		        long horas, minutos, segundos, milesimos;
 		
-		final long FATOR_SEGUNDO = 1000;
-        final long FATOR_MINUTO = FATOR_SEGUNDO * 60;
-        final long FATOR_HORA = FATOR_MINUTO * 60;
-        
-        long horas, minutos, segundos, milesimos;
-
-        horas = tempo / FATOR_HORA;
-        minutos = (tempo % FATOR_HORA) / FATOR_MINUTO;
-        segundos = (tempo % FATOR_MINUTO) / FATOR_SEGUNDO;
-        milesimos = tempo % FATOR_SEGUNDO;
-		
-		// Imprime aviso no mestre
-		System.err.println(	"Escravo: "+slave.getSlaveName()+
-				", Tempo decorrido: "+horas + " horas, " + minutos + " minutos, " + segundos + " segundos e " + milesimos + " milesimos"+
-				", Índice atual: "+currentindex);
-		
-		try 
-		{
-			// Atualiza o currentindex
-			this.subAttacks.get(attackNumber).setCurrentindex(currentindex);
+		        horas = tempo / FATOR_HORA;
+		        minutos = (tempo % FATOR_HORA) / FATOR_MINUTO;
+		        segundos = (tempo % FATOR_MINUTO) / FATOR_SEGUNDO;
+		        milesimos = tempo % FATOR_SEGUNDO;
+				
+				// Imprime aviso no mestre
+				System.err.println(	"Escravo: "+slave.getSlaveName()+
+						", Tempo decorrido: "+horas + " horas, " + minutos + " minutos, " + segundos + " segundos e " + milesimos + " milesimos"+
+						", Índice atual: "+currentindex);
+				
+				try 
+				{
+					// Atualiza o currentindex
+					this.subAttacks.get(attackNumber).setCurrentindex(currentindex);
+				}
+				
+				// Se for o último index, entra na exceção
+				catch (Exception e) 
+				{
+					// Descobre o número do ataque (attackNumber se refere ao sub-ataque)
+					int numeroAttack = this.subAttacks.get(attackNumber).getAttackNumber();
+					
+					// Decrementa quantidade de subataques no ataque correspondente
+					this.attacks.get(numeroAttack).decrementaSubataquesEmAndamento();
+					
+					// Remove subataque da lista
+					this.subAttacks.remove(attackNumber);
+				}
+			}
 		}
-		
-		// Se for o último index, entra na exceção
-		catch (Exception e) 
-		{
-			// Descobre o número do ataque (attackNumber se refere ao sub-ataque)
-			int numeroAttack = this.subAttacks.get(attackNumber).getAttackNumber();
-			
-			// Decrementa quantidade de subataques no ataque correspondente
-			this.attacks.get(numeroAttack).decrementaSubataquesEmAndamento();
-			
-			// Remove subataque da lista
-			this.subAttacks.remove(attackNumber);
+		}
 		}
 	}
 
@@ -150,7 +163,7 @@ public class MasterImpl implements Master
 	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException 
 	{
 		// Cria um ataque
-		Attack attack = new Attack(lastAttackNumber++);
+		Attack attack = new Attack(lastAttackNumber++, ciphertext, knowntext);
 		
 		// Adiciona o ataque na lista de ataques
 		this.attacks.put(attack.getAttackNumber(), attack);
@@ -197,4 +210,54 @@ public class MasterImpl implements Master
 		
 		return guesses;
 	}
+	
+	protected void redistribuirSubAttack(Integer subAttackNumber) throws RemoteException {
+		
+		// Aguarda ter ao menos um escravo na lista
+		while(this.slaves.isEmpty()) {
+			System.err.println("Nenhum escravo registrado. Aguardando um escravo para continuar.");
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		SubAttack subattackAntigo = subAttacks.get(subAttackNumber);
+		Attack attack = attacks.get(subattackAntigo.getAttackNumber());
+		
+		// Calcula os índices do dicionário para o primeiro escravo
+		int quantidadeEscravos = slaves.size();
+		int tamanhoRange = (int) (subattackAntigo.getFinalindex() - subattackAntigo.getCurrentindex());
+		int divisao = (tamanhoRange / quantidadeEscravos);
+		int mod = tamanhoRange % quantidadeEscravos;
+		int indiceInicial = (int) subattackAntigo.getCurrentindex() + 1;
+		int indiceFinal = indiceInicial + divisao-1;
+		if(mod>0) {indiceFinal++; mod--;}
+		
+		// Percorre os escravos
+		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slaves.entrySet()) 
+		{
+			// Cria um sub-ataque
+			SubAttack subattack = new SubAttack(lastSubattackNumber++, attack.getAttackNumber(), indiceFinal, entry.getKey(), this);
+			
+			// Adiciona o sub-ataque na lista de sub-ataques
+			this.subAttacks.put(subattack.getSubAttackNumber(), subattack);
+			
+			// Registra o sub-ataque no ataque
+			attack.incrementaSubataquesEmAndamento();
+			
+			// Chama startSubAttack
+			entry.getValue().getSlave().startSubAttack(attack.ciphertext, attack.knowntext, indiceInicial, indiceFinal, subattack.getSubAttackNumber(), this);
+			
+			// Atualiza os índices do dicionário para o próximo escravo
+			indiceInicial = indiceFinal+1;
+			indiceFinal = indiceInicial+divisao-1;
+			if(mod>0) {indiceFinal++; mod--;}
+		}
+		
+		// Decrementa a quantidade de sub-ataques em andamento
+		attacks.get(subattackAntigo.getAttackNumber()).decrementaSubataquesEmAndamento();
+	}	
 }

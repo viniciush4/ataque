@@ -15,17 +15,19 @@ public class SubAttack {
 	private long currentindex;
 	private long finalindex;
 	java.util.UUID slaveKey;
-	SlaveManager mestre;
+	MasterImpl mestre;
+	final Timer t;
 	
 	public SubAttack(int subAttackNumber, int attackNumber, long finalindex, java.util.UUID slaveKey, SlaveManager m) {
 		this.subAttackNumber = subAttackNumber;
 		this.attackNumber = attackNumber;
 		this.finalindex = finalindex;
-		this.mestre = m;
+		this.mestre = (MasterImpl) m;
 		this.slaveKey = slaveKey;
+		this.horaUltimoCheckpoint = System.currentTimeMillis();
 		
 		// Agenda a execução de monitorarSubattack
-		final Timer t = new Timer();
+		t = new Timer();
 		t.schedule(
 			new TimerTask() 
 		    {
@@ -42,7 +44,7 @@ public class SubAttack {
 		    		}
 		        }
 		    }, 
-		20000, 20000);
+		0, 20000);
 	}
 	
 	private void monitorarSubattack() throws RemoteException {
@@ -54,6 +56,12 @@ public class SubAttack {
 		{
 			// Chama função do mestre para remover escravo
 			this.mestre.removeSlave(slaveKey);
+						
+			// Distribui este subattack para outros escravos
+			this.mestre.redistribuirSubAttack(this.subAttackNumber);
+			
+			// Para de monitorar este sub-ataque
+			t.cancel();
 		}
 	}
 
@@ -71,6 +79,7 @@ public class SubAttack {
 
 	public void setCurrentindex(long currentindex) throws Exception {
 		this.currentindex = currentindex;
+		this.horaUltimoCheckpoint = System.currentTimeMillis();
 		
 		// Se for o último indice
 		if(this.currentindex == this.finalindex) {

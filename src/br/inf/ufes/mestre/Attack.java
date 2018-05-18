@@ -8,10 +8,14 @@ public class Attack {
 	
 	private int attackNumber;
 	private int quantidadeSubataquesEmAndamento;
+	byte[] ciphertext;
+	byte[] knowntext;
 	ArrayList<Guess> guesses = new ArrayList<Guess>();
 	
-	public Attack(int attackNumber) {
+	public Attack(int attackNumber, byte[] ciphertext, byte[] knowntext) {
 		this.attackNumber = attackNumber;
+		this.ciphertext = ciphertext;
+		this.knowntext = knowntext;
 	}
 	
 	public int getAttackNumber() {
