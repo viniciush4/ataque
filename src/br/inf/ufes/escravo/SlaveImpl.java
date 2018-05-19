@@ -15,6 +15,9 @@ import br.inf.ufes.ppd.SlaveManager;
 
 public class SlaveImpl implements Slave 
 {
+	// Modo Overhead
+	private static boolean overhead;
+	
 	// Identificação única do escravo
 	private static java.util.UUID slaveKey = java.util.UUID.randomUUID();
 	
@@ -36,11 +39,14 @@ public class SlaveImpl implements Slave
 		try 
 		{
 			// Se não foram fornecidos exatamente três argumentos
-			if(args.length < 3) {
-				throw new Exception("Uso: SlaveImpl <IP_DESTA_MÁQUINA> <IP_DO_MESTRE> <NOME_ESCRAVO>");
+			if(args.length < 4) {
+				throw new Exception("Uso: SlaveImpl <IP_DESTA_MÁQUINA> <IP_DO_MESTRE> <NOME_ESCRAVO> <HAB_MODO_OVERHEAD? 0-N | 1-S>");
 			}
 					
 			System.setProperty("java.rmi.server.hostname", args[0]);
+			
+			// Guarda preferência do modo overhead
+			overhead = (Integer.parseInt(args[3]) == 1) ? true : false;
 			
 			// Guarda o nome do escravo
 			slaveName = args[2];
@@ -123,12 +129,16 @@ public class SlaveImpl implements Slave
 		int attackNumber,
 		SlaveManager callbackinterface)
 	throws java.rmi.RemoteException 
-	{		
-		Thread t = new Thread(
-			new ExecuteSubAttack(
-				ciphertext, knowntext, initialwordindex, finalwordindex, attackNumber, callbackinterface, slaveKey
-			)
-		);
-		t.start();
+	{	
+		if(overhead) {
+			callbackinterface.checkpoint(slaveKey, attackNumber, finalwordindex);
+		} else {
+			Thread t = new Thread(
+				new ExecuteSubAttack(
+					ciphertext, knowntext, initialwordindex, finalwordindex, attackNumber, callbackinterface, slaveKey
+				)
+			);
+			t.start();
+		}
 	}
 }

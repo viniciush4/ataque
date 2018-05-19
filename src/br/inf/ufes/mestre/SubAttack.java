@@ -8,7 +8,7 @@ import br.inf.ufes.ppd.SlaveManager;
 
 public class SubAttack {
 
-	private long horaInicio = System.currentTimeMillis();
+	private long horaInicio = System.nanoTime();
 	private long horaUltimoCheckpoint;
 	private int attackNumber;
 	private int subAttackNumber;
@@ -18,13 +18,14 @@ public class SubAttack {
 	MasterImpl mestre;
 	final Timer t;
 	
-	public SubAttack(int subAttackNumber, int attackNumber, long finalindex, java.util.UUID slaveKey, SlaveManager m) {
+	public SubAttack(int subAttackNumber, int attackNumber, long initialIndex, long finalindex, java.util.UUID slaveKey, SlaveManager m) {
 		this.subAttackNumber = subAttackNumber;
 		this.attackNumber = attackNumber;
 		this.finalindex = finalindex;
+		this.currentindex = initialIndex - 1;
 		this.mestre = (MasterImpl) m;
 		this.slaveKey = slaveKey;
-		this.horaUltimoCheckpoint = System.currentTimeMillis();
+		this.horaUltimoCheckpoint = System.nanoTime();
 		
 		// Agenda a execução de monitorarSubattack
 		t = new Timer();
@@ -49,10 +50,10 @@ public class SubAttack {
 	
 	private void monitorarSubattack() throws RemoteException {
 		
-		long tempoDesdeOultimoCheckpoint = System.currentTimeMillis() - this.horaUltimoCheckpoint;
-		
+		long tempoDesdeOultimoCheckpoint = System.nanoTime() - this.horaUltimoCheckpoint;
+
 		// Se passou 20s desde o ultimo checkpoint
-		if(tempoDesdeOultimoCheckpoint > 20000)
+		if(tempoDesdeOultimoCheckpoint > 20000000000L)
 		{
 			// Chama função do mestre para remover escravo
 			this.mestre.removeSlave(slaveKey);
@@ -63,6 +64,10 @@ public class SubAttack {
 			// Para de monitorar este sub-ataque
 			t.cancel();
 		}
+	}
+	
+	protected void pararMonitoramento() {
+		t.cancel();
 	}
 
 	public long getHoraInicio() {
@@ -79,7 +84,7 @@ public class SubAttack {
 
 	public void setCurrentindex(long currentindex) throws Exception {
 		this.currentindex = currentindex;
-		this.horaUltimoCheckpoint = System.currentTimeMillis();
+		this.horaUltimoCheckpoint = System.nanoTime();
 		
 		// Se for o último indice
 		if(this.currentindex == this.finalindex) {
