@@ -18,7 +18,8 @@ public class SubAttack {
 	MasterImpl mestre;
 	final Timer t;
 	
-	public SubAttack(int subAttackNumber, int attackNumber, long initialIndex, long finalindex, java.util.UUID slaveKey, SlaveManager m) {
+	public SubAttack(int subAttackNumber, int attackNumber, long initialIndex, long finalindex, 
+			java.util.UUID slaveKey, SlaveManager m) {
 		this.subAttackNumber = subAttackNumber;
 		this.attackNumber = attackNumber;
 		this.finalindex = finalindex;
@@ -27,7 +28,7 @@ public class SubAttack {
 		this.slaveKey = slaveKey;
 		this.horaUltimoCheckpoint = System.nanoTime();
 		
-		// Agenda a execução de monitorarSubattack
+		// Executa e agenda a execução de monitorarSubattack a cada 20 seg
 		t = new Timer();
 		t.schedule(
 			new TimerTask() 
@@ -48,21 +49,22 @@ public class SubAttack {
 		0, 20000);
 	}
 	
-	private void monitorarSubattack() throws RemoteException {
-		
-		long tempoDesdeOultimoCheckpoint = System.nanoTime() - this.horaUltimoCheckpoint;
+	private void monitorarSubattack() throws RemoteException 
+	{
+		// Calcula tempo desde o último checkpoint
+		long tempoDesdeOultimoCheckpoint = System.nanoTime() - horaUltimoCheckpoint;
 
 		// Se passou 20s desde o ultimo checkpoint
 		if(tempoDesdeOultimoCheckpoint > 20000000000L)
 		{
 			// Chama função do mestre para remover escravo
-			this.mestre.removeSlave(slaveKey);
+			mestre.removeSlave(slaveKey);
 						
 			// Distribui este subattack para outros escravos
-			this.mestre.redistribuirSubAttack(this.subAttackNumber);
+			mestre.redistribuirSubAttack(subAttackNumber);
 			
 			// Para de monitorar este sub-ataque
-			t.cancel();
+			pararMonitoramento();
 		}
 	}
 	
@@ -82,17 +84,19 @@ public class SubAttack {
 		return currentindex;
 	}
 
-	public void setCurrentindex(long currentindex) throws Exception {
+	public void setCurrentindex(long currentindex) 
+	{
 		this.currentindex = currentindex;
 		this.horaUltimoCheckpoint = System.nanoTime();
 		
-		// Se for o último indice
-		if(this.currentindex == this.finalindex) {
+		// Se for o último índice
+		if(this.currentindex == this.finalindex) 
+		{
+			// Encerra o sub-ataque no mestre
+			mestre.encerrarSubAttack(subAttackNumber, attackNumber);
 			
 			// Para de monitorar este sub-ataque
-			t.cancel();
-			
-			throw new Exception();
+			pararMonitoramento();
 		}
 	}
 

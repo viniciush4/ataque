@@ -15,6 +15,14 @@ import br.inf.ufes.ppd.SlaveManager;
 
 public class ExecuteSubAttack implements Runnable 
 {
+	// Cores usadas para impressão no terminal
+	public static final String ANSI_RESET = "\u001B[0m";
+	public static final String ANSI_VERMELHO = "\u001B[31m";
+	public static final String ANSI_VERDE = "\u001B[32m";
+	public static final String ANSI_AMARELO = "\u001B[33m";
+	public static final String ANSI_AZUL = "\u001B[34m";
+	
+	// Atributos
 	byte[] ciphertext;
 	byte[] knowntext;
 	long initialwordindex;
@@ -23,8 +31,10 @@ public class ExecuteSubAttack implements Runnable
 	SlaveManager callbackinterface;
 	long currentindex;
 	java.util.UUID slaveKey;
+	String slaveName;
 	final Timer temporizadorCheckpoint;
 		
+	// Construtor
 	public ExecuteSubAttack(
 		byte[] ciphertext,
 		byte[] knowntext,
@@ -32,7 +42,8 @@ public class ExecuteSubAttack implements Runnable
 		long finalwordindex,
 		int attackNumber,
 		SlaveManager callbackinterface,
-		java.util.UUID slaveKey
+		java.util.UUID slaveKey,
+		String slaveName
 	)
 	{
 		this.ciphertext = ciphertext;
@@ -42,10 +53,11 @@ public class ExecuteSubAttack implements Runnable
 		this.attackNumber = attackNumber;
 		this.callbackinterface = callbackinterface;
 		this.slaveKey = slaveKey;
+		this.slaveName = slaveName;
 		
 		// Agenda a execução de checkpoint
-		this.temporizadorCheckpoint = new Timer();
-        this.temporizadorCheckpoint.schedule(
+		temporizadorCheckpoint = new Timer();
+        temporizadorCheckpoint.schedule(
     		new TimerTask() 
 	        {
 	        	@Override
@@ -64,17 +76,19 @@ public class ExecuteSubAttack implements Runnable
         10000, 10000);
 	}
 	
+	// Executa um checkpoint
 	public void executarCheckpoint() throws RemoteException
 	{
-		this.callbackinterface.checkpoint(slaveKey, attackNumber, currentindex);
+		callbackinterface.checkpoint(slaveKey, attackNumber, currentindex);
 	}
 
 	@Override
-	public void run() {
-		
+	public void run() 
+	{
 		try 
 		{
-			System.err.println("Inicial: "+initialwordindex+" - Final: "+finalwordindex);
+			// Imprime no escravo os índices inicial e final
+			System.err.println(ANSI_VERDE+"["+slaveName+"] Índices: "+initialwordindex+" .. "+finalwordindex+ANSI_RESET);
 			
 			// Lê o arquivo do dicionário
 			File arquivo = new File("../dictionary.txt");
@@ -82,9 +96,7 @@ public class ExecuteSubAttack implements Runnable
 			BufferedReader lerArq = new BufferedReader(arq);
 			
 			// Avança até initialwordindex
-			for(long i=0;i<initialwordindex;i++) {
-				lerArq.readLine();
-			}
+			for(long i=0;i<initialwordindex;i++) { lerArq.readLine(); }
 			
 			// Percorre o intervalo solicitado no dicionario
 			for(long i=initialwordindex; i<=finalwordindex;i++) 
@@ -93,9 +105,9 @@ public class ExecuteSubAttack implements Runnable
 				String palavra = lerArq.readLine();
 				byte[] decrypted = null;
 				
-				// Usa a palavra para descriptografar o ciphertext
 				try
 				{
+					// Usa a palavra para descriptografar o ciphertext
 					byte[] key = palavra.getBytes();
 					SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
 					Cipher cipher = Cipher.getInstance("Blowfish");
@@ -122,6 +134,9 @@ public class ExecuteSubAttack implements Runnable
 					currentguess.setKey(palavra);
 					currentguess.setMessage(decrypted);
 					callbackinterface.foundGuess(slaveKey, attackNumber, i, currentguess);
+					
+					// Imprime no escravo os índices inicial e final
+					System.err.println(ANSI_AZUL+"["+slaveName+"] Índice: "+i+" Palavra Candidata: "+currentguess.getKey()+ANSI_RESET);
 				}
 				
 				// Atualiza currentindex
@@ -137,10 +152,13 @@ public class ExecuteSubAttack implements Runnable
 			// Envia último checkpoint
 			executarCheckpoint();
 			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			// Imprime no escravo aviso de fim
+			System.err.println(ANSI_AMARELO+"["+slaveName+"] Índice: "+currentindex+" Fim do sub-ataque"+ANSI_RESET);
+			
+		} 
+		catch (Exception e) 
+		{
 			e.getMessage();
 		}
-		
 	}
 }

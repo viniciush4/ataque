@@ -38,11 +38,12 @@ public class SlaveImpl implements Slave
 	{
 		try 
 		{
-			// Se não foram fornecidos exatamente três argumentos
+			// Se não foram fornecidos pelo menos quatro argumentos
 			if(args.length < 4) {
 				throw new Exception("Uso: SlaveImpl <IP_DESTA_MÁQUINA> <IP_DO_MESTRE> <NOME_ESCRAVO> <HAB_MODO_OVERHEAD? 0-N | 1-S>");
 			}
 					
+			// Configura o hostname
 			System.setProperty("java.rmi.server.hostname", args[0]);
 			
 			// Guarda preferência do modo overhead
@@ -99,6 +100,7 @@ public class SlaveImpl implements Slave
 	{
 		try 
 		{
+			// Se registra no mestre
 			mestre.addSlave(objref, slaveName, slaveKey);
 		}
 		catch (ConnectException e) 
@@ -108,19 +110,7 @@ public class SlaveImpl implements Slave
 		}
 	}
 	
-	/**
-	 * Solicita a um escravo que inicie sua parte do ataque.
-	 * @param ciphertext mensagem critografada
-	 * @param knowntext trecho conhecido da mensagem decriptografada
-	 * @param initialwordindex índice inicial do trecho do dicionário
-	 * a ser considerado no sub-ataque.
-	 * @param finalwordindex índice final do trecho do dicionário
-	 * a ser considerado no sub-ataque.
-     * @param attackNumber chave que identifica o ataque
-	 * @param callbackinterface interface do mestre para chamada de
-	 * checkpoint e foundGuess
-	 * @throws java.rmi.RemoteException
-	 */
+	@Override
 	public void startSubAttack(
 		byte[] ciphertext,
 		byte[] knowntext,
@@ -130,14 +120,19 @@ public class SlaveImpl implements Slave
 		SlaveManager callbackinterface)
 	throws java.rmi.RemoteException 
 	{	
-		if(overhead) {
+		// Se estiver em modo overhead
+		if(overhead) 
+		{
+			// Retorna o último checkpoint (com o último índice)
 			callbackinterface.checkpoint(slaveKey, attackNumber, finalwordindex);
-		} else {
-			Thread t = new Thread(
-				new ExecuteSubAttack(
-					ciphertext, knowntext, initialwordindex, finalwordindex, attackNumber, callbackinterface, slaveKey
-				)
-			);
+		} 
+		else 
+		{
+			// Cria uma thread para executar o sub-ataque
+			Thread t = new Thread( new ExecuteSubAttack(
+				ciphertext, knowntext, initialwordindex, finalwordindex, attackNumber, callbackinterface, slaveKey, slaveName
+			));
+			
 			t.start();
 		}
 	}

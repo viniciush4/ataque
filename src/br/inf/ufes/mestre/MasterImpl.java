@@ -45,6 +45,7 @@ public class MasterImpl implements Master
 				throw new Exception("Uso: MasterImpl <IP_DESTA_MÁQUINA>");
 			}
 			
+			// Configura o hostname
 			System.setProperty("java.rmi.server.hostname", args[0]);
 			
 			// Cria uma referência desta classe para exportação
@@ -62,35 +63,35 @@ public class MasterImpl implements Master
 		} 
 		catch (Exception e) 
 		{
-			e.getMessage();
+			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
-		
-		// Salva o escravo na lista de escravos (se existir, é substituido)
-		synchronized(slaves) {
-			this.slaves.put(slavekey, new SlaveStatus(slaveName, s));
+	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException 
+	{
+		synchronized(slaves) 
+		{
+			// Salva o escravo na lista de escravos (se existir, é substituido)
+			slaves.put(slavekey, new SlaveStatus(slaveName, s));
 		}
 		
 		// Imprime aviso no mestre
 		System.err.println(ANSI_VERDE+"["+slaveName+"] Registrado"+ANSI_RESET);
-		
 	}
 
 	@Override
-	public void removeSlave(UUID slaveKey) throws RemoteException {
-		
-		// Remove escravo
-		synchronized(slaves) {
-			
+	public void removeSlave(UUID slaveKey) throws RemoteException 
+	{
+		synchronized(slaves) 
+		{
 			// Verifica se o escravo ainda está na lista
 			if(this.slaves.get(slaveKey) != null)
 			{
 				// Guarda o nome do escravo
 				String slaveName = this.slaves.get(slaveKey).getSlaveName();
 				
+				// Remove o escravo
 				this.slaves.remove(slaveKey);
 				
 				// Imprime aviso no mestre
@@ -100,73 +101,74 @@ public class MasterImpl implements Master
 	}
 
 	@Override
-	public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess)
+	public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess) 
 			throws RemoteException {
 		
-		// Calcula tempo gasto
-		long inicio = this.subAttacks.get(attackNumber).getHoraInicio();
+		// Dados do sub-ataque
+		long inicio;
+		int numeroAttack;
+		String slaveName;
+		
+		synchronized(subAttacks) 
+		{
+			// Busca a hora de início do sub-ataque
+			inicio = subAttacks.get(attackNumber).getHoraInicio();
+
+			// Busca o número do ataque (attackNumber se refere ao sub-ataque)
+			numeroAttack = subAttacks.get(attackNumber).getAttackNumber();
+		}
+		
+		// Busca o nome do escravo
+		synchronized(slaves) { slaveName = slaves.get(slaveKey).getSlaveName(); }
+
+		// Insere o guess na lista correspondente ao ataque
+		synchronized(attacks) { attacks.get(numeroAttack).guesses.add(currentguess); }
 		
 		// Imprime aviso no mestre
-		System.err.println(ANSI_AZUL+"["+slaves.get(slaveKey).getSlaveName()+"] "+
-				calcularTempoGasto(inicio)+
-				" Índice: "+currentindex+
-				" Palavra Candidata: "+currentguess.getKey()+ANSI_RESET);
-
-		// Descobre o número do ataque (attackNumber se refere ao sub-ataque)
-		int numeroAttack = this.subAttacks.get(attackNumber).getAttackNumber();
+		System.err.println(
+			ANSI_AZUL+
+			"["+slaveName+"] "+
+			calcularTempoGasto(inicio)+
+			" Índice: "+currentindex+
+			" Palavra Candidata: "+currentguess.getKey()+
+			ANSI_RESET
+		);
 		
-		// Insere o guess na lista
-		this.attacks.get(numeroAttack).guesses.add(currentguess);
+		// Atualiza o currentindex
+		synchronized(subAttacks) {subAttacks.get(attackNumber).setCurrentindex(currentindex);}
 	}
 
 	@Override
-	public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
-		
-		synchronized(slaves) {
-		synchronized(subAttacks) {
-		synchronized(attacks) {	
-			
-			// Busca escravo na lista
-			SlaveStatus slave = slaves.get(slaveKey);
-			
-			// Se foi encontrado o escravo na lista
-			if(slave != null) {
-				
-				// Calcula tempo gasto
-				long inicio = this.subAttacks.get(attackNumber).getHoraInicio();
-				
-				// Imprime aviso no mestre
-				System.err.println(ANSI_AMARELO+"["+slave.getSlaveName()+"] "+calcularTempoGasto(inicio)+" Índice: "+currentindex+ANSI_RESET);
-				
-				try 
-				{
-					// Atualiza o currentindex
-					this.subAttacks.get(attackNumber).setCurrentindex(currentindex);
-				}
-				
-				// Se for o último index, entra na exceção
-				catch (Exception e) 
-				{
-					// Descobre o número do ataque (attackNumber se refere ao sub-ataque)
-					int numeroAttack = this.subAttacks.get(attackNumber).getAttackNumber();
-					
-					// Decrementa quantidade de subataques no ataque correspondente
-					this.attacks.get(numeroAttack).decrementaSubataquesEmAndamento();
-					
-					// Remove subataque da lista
-					this.subAttacks.remove(attackNumber);
-				}
-			}
-		}
-		}
-		}
-	}
+	public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException 
+	{	
+		// Dados do sub-ataque
+		long inicio;
+		String slaveName;
 
+		// Busca a hora de início do sub-ataque
+		synchronized(subAttacks) { inicio = subAttacks.get(attackNumber).getHoraInicio(); }
+		
+		// Busca o nome do escravo
+		synchronized(slaves) { slaveName = slaves.get(slaveKey).getSlaveName();	}
+		
+		// Imprime aviso no mestre
+		System.err.println(
+			ANSI_AMARELO+
+			"["+slaveName+"] "+
+			calcularTempoGasto(inicio)+
+			" Índice: "+currentindex+
+			ANSI_RESET
+		);
+		
+		// Atualiza o currentindex
+		synchronized(subAttacks) {subAttacks.get(attackNumber).setCurrentindex(currentindex);}
+	}
+	
 	@Override
 	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException 
 	{
 		// Aguarda ter ao menos um escravo na lista
-		while(this.slaves.isEmpty()) 
+		while(slaves.isEmpty()) 
 		{
 			System.err.println("[master] Aguardando um escravo para continuar.");
 			
@@ -184,7 +186,7 @@ public class MasterImpl implements Master
 		Attack attack = new Attack(lastAttackNumber++, ciphertext, knowntext);
 		
 		// Adiciona o ataque na lista de ataques
-		synchronized(attacks) {	this.attacks.put(attack.getAttackNumber(), attack); }
+		synchronized(attacks) {	attacks.put(attack.getAttackNumber(), attack); }
 		
 		// Calcula os índices do dicionário para o primeiro escravo
 		int quantidadeEscravos = slaves.size();
@@ -199,6 +201,7 @@ public class MasterImpl implements Master
 		Map<java.util.UUID, SlaveStatus> slavesFalhos = new HashMap<java.util.UUID, SlaveStatus>();
 		Map<java.util.UUID, SlaveStatus> copiaSlaves;
 		
+		// Copia a lista de escravos
 		synchronized(slaves) { copiaSlaves = new HashMap<java.util.UUID, SlaveStatus>(slaves); }
 		
 		// Percorre os escravos
@@ -226,7 +229,7 @@ public class MasterImpl implements Master
 				// Adiciona na lista de subattacks a serem redistribuidos
 				subAttacksAseremRedistribuidos.put(subattack.getSubAttackNumber(), subattack);
 				
-				// Para o monitoramento do subattack
+				// Para o monitoramento do sub-ataque
 				subattack.pararMonitoramento();
 			}
 			
@@ -236,7 +239,7 @@ public class MasterImpl implements Master
 			if(mod>0) {indiceFinal++; mod--;}
 		}
 		
-		// Remove escravos falhos
+		// Remove escravos falhos removondo-os
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slavesFalhos.entrySet()) {
 			removeSlave(entry.getKey());
 		}
@@ -249,14 +252,24 @@ public class MasterImpl implements Master
 		// Espera o último checkpoint (Enquanto a quantidade de sub-ataques em andamento é maior que zero)
 		while(this.attacks.get(attack.getAttackNumber()).getQuantidadeSubataquesEmAndamento() > 0){}
 		
-		// Retorna as palavras candidatas encontradas neste ataque
+		// Converte a lista de guesses em um array
 		Guess[] guesses = new Guess[attacks.get(attack.getAttackNumber()).guesses.size()];
 		attacks.get(attack.getAttackNumber()).guesses.toArray(guesses);
 		
 		// Remove attack da lista
 		synchronized(attacks) { this.attacks.remove(attack.getAttackNumber()); }
 		
+		// Retorna os guesses
 		return guesses;
+	}
+
+	protected void encerrarSubAttack(int subAttackNumber, int attackNumber) 
+	{
+		// Remove subataque da lista
+		synchronized(subAttacks) {subAttacks.remove(subAttackNumber);}
+		
+		// Decrementa quantidade de subataques no ataque correspondente
+		synchronized(attacks) {attacks.get(attackNumber).decrementaSubataquesEmAndamento();}
 	}
 	
 	protected void redistribuirSubAttack(Integer subAttackNumber) throws RemoteException 
@@ -295,6 +308,7 @@ public class MasterImpl implements Master
 		Map<java.util.UUID, SlaveStatus> slavesFalhos = new HashMap<java.util.UUID, SlaveStatus>();
 		Map<java.util.UUID, SlaveStatus> copiaSlaves;
 		
+		// Copia a lista de escravos
 		synchronized(slaves) { copiaSlaves = new HashMap<java.util.UUID, SlaveStatus>(slaves); }
 		
 		// Percorre os escravos
@@ -312,7 +326,7 @@ public class MasterImpl implements Master
 			try 
 			{
 				// Chama startSubAttack
-				entry.getValue().getSlave().startSubAttack(attack.ciphertext, attack.knowntext, indiceInicial, indiceFinal, subattack.getSubAttackNumber(), this);
+				entry.getValue().getSlave().startSubAttack(attack.getCiphertext(), attack.getKnowntext(), indiceInicial, indiceFinal, subattack.getSubAttackNumber(), this);
 			} 
 			catch (RemoteException e) 
 			{
@@ -333,7 +347,7 @@ public class MasterImpl implements Master
 		}
 		
 		// Decrementa a quantidade de sub-ataques em andamento
-		attacks.get(subattackAntigo.getAttackNumber()).decrementaSubataquesEmAndamento();
+		synchronized(attacks) { attacks.get(subattackAntigo.getAttackNumber()).decrementaSubataquesEmAndamento(); }
 		
 		// Remove escravos falhos
 		for(Map.Entry<java.util.UUID, SlaveStatus> entry : slavesFalhos.entrySet()) {
