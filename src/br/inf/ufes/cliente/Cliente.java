@@ -95,14 +95,16 @@ public class Cliente
 		
 		try
 		{
-			//Armazena o vetor de bytes
+			// Armazena o vetor de bytes
 			byte[] mensagem = lerArquivoCriptografado(nomeArquivoCriptografado, palavraConhecida, tamanhoVetorGerado);
 			
-			//Invoca o mestre passando o vetor de bytes e a palavra conhecida
+			// Pega referência do registry a partir do IP fornecido
 			Registry registry = LocateRegistry.getRegistry(ipMestre);
 		
+			// Pega a referência do mestre no registry
 			Master mestre = (Master) registry.lookup("mestre");
 			
+			// Chama o método attack do mestre 
 			Guess[] guess = mestre.attack(mensagem, palavraConhecida);
 			
 			//Imprime as chaves candidatas e salva as mensagens candidatas em arquivos
@@ -111,7 +113,6 @@ public class Cliente
 				System.out.println("Chave candidata encontrada: " + g.getKey());
 				salvarArquivo(g.getKey()+".msg", g.getMessage());
 			}
-			
 		}
 		catch (Exception e) 
 		{

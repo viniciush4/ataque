@@ -14,6 +14,8 @@ import java.util.Random;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.sun.javafx.css.CalculatedValue;
+
 import br.inf.ufes.ppd.Guess;
 import br.inf.ufes.ppd.Master;
 
@@ -102,9 +104,9 @@ public class ClienteEspecial
 	public static void main(String[] args) throws Exception 
 	{	
 		// Se os argumentos não foram fornecidos
-		if(args.length < 3)
+		if(args.length < 6)
 		{
-			throw new Exception("Uso: ClienteEspecial <IP_DO_MESTRE> <NÚMERO_DE_ATAQUES> <TAMANHO_VETOR_INICIAL> <INTERVALO_VETORES>");
+			throw new Exception("Uso: ClienteEspecial <IP_DO_MESTRE> <NÚMERO_DE_ATAQUES> <TAMANHO_VETOR_INICIAL> <INTERVALO_VETORES> <QUANT_ESCRAVOS> <HAB_MODO_OVERHEAD? 0-N | 1-S>");
 		}
 		
 		//Captura os parâmetros
@@ -112,8 +114,9 @@ public class ClienteEspecial
 		int numeroDeAtaques = Integer.parseInt(args[1]);
 		int tamanhoVetorGerado = Integer.parseInt(args[2]); 
 		int intervaloVetor = Integer.parseInt(args[3]);
+		int quantidadeEscravos = Integer.parseInt(args[4]);
+		boolean overhead = (Integer.parseInt(args[5]) == 1) ? true : false;
 		
-		Cronometro cronometro = new Cronometro();
 		byte[] mensagem;
 		Guess[] guess;
 		
@@ -125,8 +128,11 @@ public class ClienteEspecial
 			Master mestre = (Master) registry.lookup("mestre");
 			
 			//Cria o arquivo para salvar os tempos
-			PrintStream write = new PrintStream("Tempos.csv");
-			write.print("Tamanho do Vetor,Horas,Minutos,Segundos,Milesimos\n");
+			PrintStream write = overhead ? 
+					new PrintStream("Overheads_"+quantidadeEscravos+"_Escravos.csv") :
+					new PrintStream("Tempos_"+quantidadeEscravos+"_Escravos.csv") ;
+					
+			write.print(";"+quantidadeEscravos+" Escravos\n");
 			
 			//Armazena as palavras do dicionário
 			lerDicionario();
@@ -134,25 +140,27 @@ public class ClienteEspecial
 			//Chama os ataques de acordo com o número de ataques passado na linha de comando
 			for(int i=0; i<numeroDeAtaques; i++)
 			{
+				// Somatorio dos tempos (5 execuções)
+				long somatorioTempos = 0;
+				
 				//Gera um arquivo aleatório
 				mensagem = gerarMensagem(tamanhoVetorGerado);
-		
-				//Tempo inicial
-				cronometro.start();
 				
-				//Chama um ataque
-				guess = mestre.attack(mensagem, palavraConhecida);
+				// Faz 5 vezes, para tirar a média
+				for(int j=0; j<5; j++)
+				{
+					//Tempo inicial
+					long inicio = System.nanoTime();
+					
+					//Chama um ataque
+					guess = mestre.attack(mensagem, palavraConhecida);
+					
+					//Salvar o tempo (em milissegundos)
+					somatorioTempos += System.nanoTime()-inicio;
+				}
 				
-				//Tempo final
-				cronometro.stop();
-				
-				System.out.println("Voltou!");
-				
-				//Salvar o tempo
-				write.print(tamanhoVetorGerado+","+cronometro+"\n");
-				
-				//Zera o cronometro
-				cronometro.zerar();
+				//Salvar o tempo (em milissegundos)
+				write.print(tamanhoVetorGerado+";="+(somatorioTempos/5)+"/1000000\n");
 				
 				//Aumenta o tamanho do vetor
 				tamanhoVetorGerado += intervaloVetor;
