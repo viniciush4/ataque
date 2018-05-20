@@ -14,8 +14,7 @@ import java.util.Random;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.sun.javafx.css.CalculatedValue;
-
+import br.inf.ufes.mestre.MasterImpl;
 import br.inf.ufes.ppd.Guess;
 import br.inf.ufes.ppd.Master;
 
@@ -82,8 +81,6 @@ public class ClienteEspecial
 	        
 	        //Criptografa o vetor de bytes aleatório usando uma palavra aleatória do dicionário
 	        byte[] key = dicionario.get(numeroAleatorio.nextInt(dicionario.size())).getBytes();
-	        
-//	        System.out.println(dicionario.get(numeroAleatorio.nextInt(dicionario.size()))+"\n"+key);
 	        
 			SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
 	
@@ -164,8 +161,13 @@ public class ClienteEspecial
 				
 				//Aumenta o tamanho do vetor
 				tamanhoVetorGerado += intervaloVetor;
+				
+				//Imprime uma mensagem para o cliente quando um ataque termina
+				System.err.println(MasterImpl.ANSI_AZUL+"[ATAQUE "+(i+1)+"] FINALIZADO!"+MasterImpl.ANSI_RESET);
 			}
 			
+			//Imprime uma mensagem de sucesso
+			System.err.println(MasterImpl.ANSI_VERDE+"\n"+numeroDeAtaques+" ATAQUE(S) FINALIZADO(S) COM SUCESSO!"+MasterImpl.ANSI_RESET);
 			
 		    write.close();
 		}
