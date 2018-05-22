@@ -19,7 +19,7 @@ import br.inf.ufes.ppd.Guess;
 import br.inf.ufes.ppd.Master;
 import br.inf.ufes.ppd.Slave;
 
-public class ClienteSequencial implements Master 
+public class ClienteSequencial
 {
 	private static byte[] palavraConhecida;
 	private static List<String> dicionario = new ArrayList<String>();
@@ -166,8 +166,8 @@ public class ClienteSequencial implements Master
 		return g;
 	}
 	
-	@Override
-	public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException 
+	
+	public static Guess[] ataque(byte[] ciphertext, byte[] knowntext) throws RemoteException 
 	{		
 		// Converte a lista de guesses em um array
 		List<Guess> listaGuess = atacar(ciphertext, knowntext);
@@ -198,8 +198,6 @@ public class ClienteSequencial implements Master
 		{	
 			//Cria o arquivo para salvar os tempos
 			PrintStream write = new PrintStream("ClienteSequencial.csv"); 
-			
-			ClienteSequencial clienteSequencial = new ClienteSequencial();
 					
 			write.print(";ClienteSequencial\n");
 			
@@ -222,7 +220,7 @@ public class ClienteSequencial implements Master
 					long inicio = System.nanoTime();
 					
 					//Chama um ataque
-					guess = clienteSequencial.attack(mensagem, palavraConhecida);
+					guess = ataque(mensagem, palavraConhecida);
 					
 					//Salvar o tempo (em milissegundos)
 					somatorioTempos += System.nanoTime()-inicio;
@@ -249,29 +247,6 @@ public class ClienteSequencial implements Master
 		}
 	}
 
-	@Override
-	public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void removeSlave(UUID slaveKey) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess)
-			throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
+	
 	
 }
