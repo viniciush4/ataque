@@ -81,6 +81,26 @@ public class ExecuteSubAttack implements Runnable
 	{
 		callbackinterface.checkpoint(slaveKey, attackNumber, currentindex);
 	}
+	
+	// Verifica se uma sequência de bytes existe dentro de outra
+	public boolean bytesContains(byte[] mensagem, byte[] knowtext) 
+	{
+		int contadorBytesIguais;
+		
+        for(int i = 0; i < mensagem.length; i++) {
+        	contadorBytesIguais=0;
+            if(mensagem[i] == knowtext[0]) {
+            	contadorBytesIguais++;
+                for(int j = 1, k = i+1; (j < knowtext.length) && (k < mensagem.length); j++, k++) {
+                	
+                    if(knowtext[j] != mensagem[k]) break;
+                    contadorBytesIguais++;
+                }
+                if(contadorBytesIguais == knowtext.length) return true;
+            }
+        }
+        return false;
+    }
 
 	@Override
 	public void run() 
@@ -122,12 +142,8 @@ public class ExecuteSubAttack implements Runnable
 					continue;
 				}
 				
-				// Converte texto conhecido e mensagem descriptografada para String
-				String mensagem_descriptografada = new String(decrypted, "UTF-8");
-				String texto_conhecido = new String(knowntext, "UTF-8");
-				
 				// Verifica se o knowntext existe no texto descriptografado
-				if(mensagem_descriptografada.contains(texto_conhecido)) 
+				if(bytesContains(decrypted, knowntext))
 				{
 					// Avisa ao mestre 
 					Guess currentguess = new Guess();
